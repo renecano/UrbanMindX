@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.env
+venv/
+.venv/
+
+# Modelos entrenados (pueden ser muy pesados)
+modelos/*.zip
+
+# Resultados (se generan corriendo el sistema)
+resultados/*.csv
+resultados/*.json
+
+# SUMO archivos temporales
+*.log
+sumo/red/*.net.xml.bak
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db

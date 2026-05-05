@@ -1,0 +1,43 @@
+# ============================================================
+# UrbanMind X — Dependencias del proyecto
+# ============================================================
+
+# Aprendizaje por Refuerzo
+gymnasium==0.29.1
+stable-baselines3==2.3.2
+sb3-contrib==2.3.0
+
+# Deep Learning (base de SB3)
+torch==2.2.0
+
+# Simulación de tráfico
+# SUMO se instala por separado: https://sumo.dlr.de/docs/Downloads.php
+traci==1.19.0
+sumolib==1.19.0
+
+# Datos y métricas
+numpy==1.26.4
+pandas==2.2.1
+
+# Visualización / Dashboard
+streamlit==1.32.2
+plotly==5.20.0
+matplotlib==3.8.3
+
+# Utilidades
+tqdm==4.66.2
+python-dotenv==1.0.1
+pytest==8.1.1
+
+# ============================================================
+# INSTALACIÓN:
+#   pip install -r requirements.txt
+#
+# NOTA SUMO (instalar primero):
+#   Ubuntu/Debian: sudo apt-get install sumo sumo-tools sumo-doc
+#   Mac:           brew install sumo
+#   Windows:       descargar instalador en sumo.dlr.de
+#
+# Variable de entorno obligatoria después de instalar SUMO:
+#   export SUMO_HOME="/usr/share/sumo"   (Linux/Mac)
+# ============================================================

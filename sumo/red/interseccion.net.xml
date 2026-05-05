@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    interseccion.net.xml — Persona 1
+    Red vial de la intersección urbana.
+
+    IMPORTANTE: Este archivo es un punto de partida esquemático.
+    Se debe generar o editar con la herramienta netedit de SUMO.
+
+    Herramienta para editar visualmente:
+        netedit sumo/red/interseccion.net.xml
+
+    O generar desde cero con netconvert:
+        netconvert --node-files=nodos.nod.xml
+                   --edge-files=calles.edg.xml
+                   --output-file=sumo/red/interseccion.net.xml
+-->
+<net version="1.16" junctionCornerDetail="5">
+
+    <!-- Nodos (intersecciones y extremos de calles) -->
+    <node id="centro" x="0"    y="0"    type="traffic_light"/>
+    <node id="norte"  x="0"    y="200"  type="dead_end"/>
+    <node id="sur"    x="0"    y="-200" type="dead_end"/>
+    <node id="este"   x="200"  y="0"    type="dead_end"/>
+    <node id="oeste"  x="-200" y="0"    type="dead_end"/>
+
+    <!-- Calles de entrada a la intersección -->
+    <edge id="norte_entrada" from="norte" to="centro" numLanes="2" speed="13.89"/>
+    <edge id="sur_entrada"   from="sur"   to="centro" numLanes="2" speed="13.89"/>
+    <edge id="este_entrada"  from="este"  to="centro" numLanes="2" speed="13.89"/>
+    <edge id="oeste_entrada" from="oeste" to="centro" numLanes="2" speed="13.89"/>
+
+    <!-- Calles de salida de la intersección -->
+    <edge id="norte_salida"  from="centro" to="norte" numLanes="2" speed="13.89"/>
+    <edge id="sur_salida"    from="centro" to="sur"   numLanes="2" speed="13.89"/>
+    <edge id="este_salida"   from="centro" to="este"  numLanes="2" speed="13.89"/>
+    <edge id="oeste_salida"  from="centro" to="oeste" numLanes="2" speed="13.89"/>
+
+    <!--
+        Semáforo con 2 fases:
+        Fase 0 (30s): Norte-Sur en verde, Este-Oeste en rojo
+        Fase 1 (30s): Este-Oeste en verde, Norte-Sur en rojo
+        (El agente RL sobreescribirá estos tiempos en tiempo real)
+    -->
+    <tlLogic id="semaforo_centro" type="static" programID="0" offset="0">
+        <phase duration="30" state="GGrrGGrr"/>
+        <phase duration="3"  state="yyrryyrr"/>
+        <phase duration="30" state="rrGGrrGG"/>
+        <phase duration="3"  state="rryyrryy"/>
+    </tlLogic>
+
+</net>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    normal.rou.xml — Persona 1
+    Flujo de tráfico normal para escenarios base.
+    ~300 vehículos por hora por dirección.
+-->
+<routes>
+    <!-- Tipos de vehículos -->
+    <vType id="auto_normal"    accel="2.6" decel="4.5" sigma="0.5"
+           length="5" minGap="2.5" maxSpeed="13.89" guiShape="passenger"/>
+    <vType id="auto_autonomo"  accel="2.6" decel="4.5" sigma="0.0"
+           length="5" minGap="2.5" maxSpeed="13.89" guiShape="passenger"
+           color="0,0,255"/>  <!-- azul para identificar fácilmente -->
+
+    <!-- Flujos de tráfico — escenario normal -->
+    <!-- Norte → Sur -->
+    <flow id="flujo_N_S" type="auto_normal"
+          from="norte_entrada" to="sur_salida"
+          begin="0" end="3600" vehsPerHour="300"/>
+
+    <!-- Sur → Norte -->
+    <flow id="flujo_S_N" type="auto_normal"
+          from="sur_entrada" to="norte_salida"
+          begin="0" end="3600" vehsPerHour="300"/>
+
+    <!-- Este → Oeste -->
+    <flow id="flujo_E_O" type="auto_normal"
+          from="este_entrada" to="oeste_salida"
+          begin="0" end="3600" vehsPerHour="300"/>
+
+    <!-- Oeste → Este -->
+    <flow id="flujo_O_E" type="auto_normal"
+          from="oeste_entrada" to="este_salida"
+          begin="0" end="3600" vehsPerHour="300"/>
+</routes>
