@@ -26,7 +26,7 @@ EDGES = {
     "este":  "este_entrada",
     "oeste": "oeste_entrada",
 }
-SEMAFORO_ID = "semaforo_centro"
+SEMAFORO_ID = "centro"
 
 
 class SimulacionTrafico:
