@@ -35,10 +35,9 @@ PPO_VEHICULO = {
 # ------------------------------------------------------------
 # Duración del entrenamiento
 # ------------------------------------------------------------
-TIMESTEPS_SEMAFORO   = 100_000   # etapa 1
-TIMESTEPS_VEHICULO   = 100_000   # etapa 2
-TIMESTEPS_CONJUNTO   = 50_000    # etapa 3 (fine-tuning)
-
+TIMESTEPS_SEMAFORO = 500_000
+TIMESTEPS_VEHICULO = 500_000 
+TIMESTEPS_CONJUNTO = 200_000
 # ------------------------------------------------------------
 # Rutas de archivos
 # ------------------------------------------------------------
@@ -51,7 +50,7 @@ RESULTADOS_DIR   = "resultados/"
 # Parámetros de la simulación
 # ------------------------------------------------------------
 PASO_SIMULACION  = 1.0    # segundos por step (no cambiar)
-MAX_PASOS        = 3600   # duración de un episodio (1 hora simulada)
+MAX_PASOS = 21600   # 6 horas × 3600 segundos
 PUERTO_SUMO      = 8813   # puerto TCP de TraCI
 
 # ------------------------------------------------------------

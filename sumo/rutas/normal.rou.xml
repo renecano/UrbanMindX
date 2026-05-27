@@ -1,25 +1,56 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!--
-    normal.rou.xml — Persona 1
-    Tráfico base (moderado) compatible con interseccion.net.xml.
--->
+<!-- perfil_toluca_real.rou.xml -->
 <routes>
-    <vType id="auto_normal"   accel="2.6" decel="4.5" sigma="0.5"
-           length="5" minGap="2.5" maxSpeed="13.89" guiShape="passenger"/>
-    <vType id="auto_autonomo" accel="2.6" decel="4.5" sigma="0.0"
-           length="5" minGap="2.5" maxSpeed="13.89" guiShape="passenger"
-           color="0,0,255"/>
+    <vType id="auto_normal" accel="2.6" decel="4.5" sigma="0.5"
+           length="5" minGap="2.5" maxSpeed="13.89"/>
 
-    <flow id="flujo_N_S" type="auto_normal"
+    <!-- ===================== -->
+    <!-- PRE-PICO: 6am - 7am  -->
+    <!-- 300 veh/hora          -->
+    <!-- ===================== -->
+    <flow id="pre_N_S" type="auto_normal"
           from="norte_entrada" to="sur_salida"
           begin="0" end="3600" vehsPerHour="300"/>
-    <flow id="flujo_S_N" type="auto_normal"
+    <flow id="pre_S_N" type="auto_normal"
           from="sur_entrada" to="norte_salida"
           begin="0" end="3600" vehsPerHour="300"/>
-    <flow id="flujo_E_O" type="auto_normal"
+    <flow id="pre_E_O" type="auto_normal"
           from="este_entrada" to="oeste_salida"
           begin="0" end="3600" vehsPerHour="300"/>
-    <flow id="flujo_O_E" type="auto_normal"
+    <flow id="pre_O_E" type="auto_normal"
           from="oeste_entrada" to="este_salida"
           begin="0" end="3600" vehsPerHour="300"/>
+
+    <!-- ======================== -->
+    <!-- HORA PICO: 7am - 9am    -->
+    <!-- 700 veh/hora             -->
+    <!-- ======================== -->
+    <flow id="pico_N_S" type="auto_normal"
+          from="norte_entrada" to="sur_salida"
+          begin="3600" end="10800" vehsPerHour="700"/>
+    <flow id="pico_S_N" type="auto_normal"
+          from="sur_entrada" to="norte_salida"
+          begin="3600" end="10800" vehsPerHour="700"/>
+    <flow id="pico_E_O" type="auto_normal"
+          from="este_entrada" to="oeste_salida"
+          begin="3600" end="10800" vehsPerHour="700"/>
+    <flow id="pico_O_E" type="auto_normal"
+          from="oeste_entrada" to="este_salida"
+          begin="3600" end="10800" vehsPerHour="700"/>
+
+    <!-- ========================= -->
+    <!-- POST-PICO: 9am - 12pm    -->
+    <!-- 400 veh/hora              -->
+    <!-- ========================= -->
+    <flow id="post_N_S" type="auto_normal"
+          from="norte_entrada" to="sur_salida"
+          begin="10800" end="21600" vehsPerHour="400"/>
+    <flow id="post_S_N" type="auto_normal"
+          from="sur_entrada" to="norte_salida"
+          begin="10800" end="21600" vehsPerHour="400"/>
+    <flow id="post_E_O" type="auto_normal"
+          from="este_entrada" to="oeste_salida"
+          begin="10800" end="21600" vehsPerHour="400"/>
+    <flow id="post_O_E" type="auto_normal"
+          from="oeste_entrada" to="este_salida"
+          begin="10800" end="21600" vehsPerHour="400"/>
 </routes>

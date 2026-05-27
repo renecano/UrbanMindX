@@ -1,29 +1,102 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-    desbalanceado.rou.xml — Persona 1
-    Norte-Sur con más tráfico que Este-Oeste.
-    Compatible con edges: norte_entrada/sur_salida/etc.
+    desbalanceado.rou.xml
+    Escenario de tráfico desbalanceado basado en Toluca.
+
+    Representa una intersección donde una avenida principal
+    (Norte-Sur) tiene mucho más tráfico que una secundaria
+    (Este-Oeste). Situación típica en el centro de Toluca
+    donde avenidas como López Rayón concentran el flujo
+    principal y las calles transversales tienen menor tráfico.
+
+    Distribución basada en datos UAEM 2022:
+        Norte-Sur: avenida principal → 70% del flujo total
+        Este-Oeste: calle secundaria → 30% del flujo total
+
+    Perfil del día con desbalance:
+        Pre-pico  (6am-7am):  NS=420 veh/h,  EO=180 veh/h
+        Hora pico (7am-9am):  NS=980 veh/h,  EO=420 veh/h
+        Post-pico (9am-12pm): NS=560 veh/h,  EO=240 veh/h
+
+    Esto prueba si el semáforo IA aprende a dar más tiempo
+    verde a Norte-Sur cuando tiene más demanda.
 -->
 <routes>
+
     <vType id="auto_normal"   accel="2.6" decel="4.5" sigma="0.5"
            length="5" minGap="2.5" maxSpeed="13.89" guiShape="passenger"/>
     <vType id="auto_autonomo" accel="2.6" decel="4.5" sigma="0.0"
            length="5" minGap="2.5" maxSpeed="13.89" guiShape="passenger"
            color="0,0,255"/>
 
-    <!-- Norte-Sur: ALTO -->
-    <flow id="flujo_N_S" type="auto_normal"
-          from="norte_entrada" to="sur_salida"
-          begin="0" end="3600" vehsPerHour="600"/>
-    <flow id="flujo_S_N" type="auto_normal"
-          from="sur_entrada" to="norte_salida"
-          begin="0" end="3600" vehsPerHour="600"/>
+    <!-- ================================================= -->
+    <!-- FASE 1 — PRE-PICO DESBALANCEADO: 6am a 7am      -->
+    <!-- Norte-Sur: 420 veh/h   Este-Oeste: 180 veh/h    -->
+    <!-- ================================================= -->
 
-    <!-- Este-Oeste: BAJO -->
-    <flow id="flujo_E_O" type="auto_normal"
+    <!-- Norte-Sur (avenida principal) -->
+    <flow id="pre_N_S" type="auto_normal"
+          from="norte_entrada" to="sur_salida"
+          begin="0" end="3600" vehsPerHour="420"/>
+
+    <flow id="pre_S_N" type="auto_normal"
+          from="sur_entrada" to="norte_salida"
+          begin="0" end="3600" vehsPerHour="420"/>
+
+    <!-- Este-Oeste (calle secundaria) -->
+    <flow id="pre_E_O" type="auto_normal"
           from="este_entrada" to="oeste_salida"
-          begin="0" end="3600" vehsPerHour="100"/>
-    <flow id="flujo_O_E" type="auto_normal"
+          begin="0" end="3600" vehsPerHour="180"/>
+
+    <flow id="pre_O_E" type="auto_normal"
           from="oeste_entrada" to="este_salida"
-          begin="0" end="3600" vehsPerHour="100"/>
+          begin="0" end="3600" vehsPerHour="180"/>
+
+    <!-- ================================================= -->
+    <!-- FASE 2 — HORA PICO DESBALANCEADA: 7am a 9am     -->
+    <!-- Norte-Sur: 980 veh/h   Este-Oeste: 420 veh/h    -->
+    <!-- Aquí el semáforo IA debe priorizar Norte-Sur     -->
+    <!-- ================================================= -->
+
+    <!-- Norte-Sur (avenida principal — casi 2.5x más tráfico) -->
+    <flow id="pico_N_S" type="auto_normal"
+          from="norte_entrada" to="sur_salida"
+          begin="3600" end="10800" vehsPerHour="980"/>
+
+    <flow id="pico_S_N" type="auto_normal"
+          from="sur_entrada" to="norte_salida"
+          begin="3600" end="10800" vehsPerHour="980"/>
+
+    <!-- Este-Oeste (calle secundaria) -->
+    <flow id="pico_E_O" type="auto_normal"
+          from="este_entrada" to="oeste_salida"
+          begin="3600" end="10800" vehsPerHour="420"/>
+
+    <flow id="pico_O_E" type="auto_normal"
+          from="oeste_entrada" to="este_salida"
+          begin="3600" end="10800" vehsPerHour="420"/>
+
+    <!-- ================================================= -->
+    <!-- FASE 3 — POST-PICO DESBALANCEADO: 9am a 12pm    -->
+    <!-- Norte-Sur: 560 veh/h   Este-Oeste: 240 veh/h    -->
+    <!-- ================================================= -->
+
+    <!-- Norte-Sur -->
+    <flow id="post_N_S" type="auto_normal"
+          from="norte_entrada" to="sur_salida"
+          begin="10800" end="21600" vehsPerHour="560"/>
+
+    <flow id="post_S_N" type="auto_normal"
+          from="sur_entrada" to="norte_salida"
+          begin="10800" end="21600" vehsPerHour="560"/>
+
+    <!-- Este-Oeste -->
+    <flow id="post_E_O" type="auto_normal"
+          from="este_entrada" to="oeste_salida"
+          begin="10800" end="21600" vehsPerHour="240"/>
+
+    <flow id="post_O_E" type="auto_normal"
+          from="oeste_entrada" to="este_salida"
+          begin="10800" end="21600" vehsPerHour="240"/>
+
 </routes>
