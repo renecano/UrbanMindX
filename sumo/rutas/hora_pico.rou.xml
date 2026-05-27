@@ -1,25 +1,93 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-    hora_pico.rou.xml — Persona 1
-    Tráfico alto — 2x el flujo normal.
+    hora_pico.rou.xml
+    Escenario extremo: simula SOLO la hora pico más intensa.
+    Útil para probar si el sistema aguanta la máxima carga.
+
+    Basado en datos reales de Toluca (UAEM 2022):
+        - Hora pico documentada: 7am - 9am
+        - Flujo máximo registrado: ~700 veh/hora/dirección
+
+    Este escenario simula 3 horas:
+        Fase 1 — Inicio de pico    (0-30 min):  500 veh/hora  (rampa de subida)
+        Fase 2 — Pico máximo       (30-90 min): 700 veh/hora  (máxima congestión)
+        Fase 3 — Final de pico     (90-120 min):550 veh/hora  (rampa de bajada)
+
+    Tiempos en segundos:
+        0    = inicio
+        1800 = 30 minutos
+        5400 = 90 minutos
+        7200 = 120 minutos (fin)
 -->
 <routes>
+
     <vType id="auto_normal"   accel="2.6" decel="4.5" sigma="0.5"
            length="5" minGap="2.5" maxSpeed="13.89" guiShape="passenger"/>
     <vType id="auto_autonomo" accel="2.6" decel="4.5" sigma="0.0"
            length="5" minGap="2.5" maxSpeed="13.89" guiShape="passenger"
            color="0,0,255"/>
 
-    <flow id="flujo_N_S" type="auto_normal"
+    <!-- ============================================ -->
+    <!-- FASE 1 — INICIO DE PICO: 0 a 30 min        -->
+    <!-- El tráfico empieza a incrementarse          -->
+    <!-- 500 vehículos/hora por dirección            -->
+    <!-- ============================================ -->
+    <flow id="inicio_N_S" type="auto_normal"
           from="norte_entrada" to="sur_salida"
-          begin="0" end="3600" vehsPerHour="600"/>
-    <flow id="flujo_S_N" type="auto_normal"
+          begin="0" end="1800" vehsPerHour="500"/>
+
+    <flow id="inicio_S_N" type="auto_normal"
           from="sur_entrada" to="norte_salida"
-          begin="0" end="3600" vehsPerHour="600"/>
-    <flow id="flujo_E_O" type="auto_normal"
+          begin="0" end="1800" vehsPerHour="500"/>
+
+    <flow id="inicio_E_O" type="auto_normal"
           from="este_entrada" to="oeste_salida"
-          begin="0" end="3600" vehsPerHour="600"/>
-    <flow id="flujo_O_E" type="auto_normal"
+          begin="0" end="1800" vehsPerHour="500"/>
+
+    <flow id="inicio_O_E" type="auto_normal"
           from="oeste_entrada" to="este_salida"
-          begin="0" end="3600" vehsPerHour="600"/>
+          begin="0" end="1800" vehsPerHour="500"/>
+
+    <!-- ============================================ -->
+    <!-- FASE 2 — PICO MÁXIMO: 30 a 90 min          -->
+    <!-- Máxima congestión sostenida                 -->
+    <!-- 700 vehículos/hora por dirección            -->
+    <!-- ============================================ -->
+    <flow id="pico_N_S" type="auto_normal"
+          from="norte_entrada" to="sur_salida"
+          begin="1800" end="5400" vehsPerHour="700"/>
+
+    <flow id="pico_S_N" type="auto_normal"
+          from="sur_entrada" to="norte_salida"
+          begin="1800" end="5400" vehsPerHour="700"/>
+
+    <flow id="pico_E_O" type="auto_normal"
+          from="este_entrada" to="oeste_salida"
+          begin="1800" end="5400" vehsPerHour="700"/>
+
+    <flow id="pico_O_E" type="auto_normal"
+          from="oeste_entrada" to="este_salida"
+          begin="1800" end="5400" vehsPerHour="700"/>
+
+    <!-- ============================================ -->
+    <!-- FASE 3 — FINAL DE PICO: 90 a 120 min       -->
+    <!-- El tráfico empieza a normalizarse           -->
+    <!-- 550 vehículos/hora por dirección            -->
+    <!-- ============================================ -->
+    <flow id="fin_N_S" type="auto_normal"
+          from="norte_entrada" to="sur_salida"
+          begin="5400" end="7200" vehsPerHour="550"/>
+
+    <flow id="fin_S_N" type="auto_normal"
+          from="sur_entrada" to="norte_salida"
+          begin="5400" end="7200" vehsPerHour="550"/>
+
+    <flow id="fin_E_O" type="auto_normal"
+          from="este_entrada" to="oeste_salida"
+          begin="5400" end="7200" vehsPerHour="550"/>
+
+    <flow id="fin_O_E" type="auto_normal"
+          from="oeste_entrada" to="este_salida"
+          begin="5400" end="7200" vehsPerHour="550"/>
+
 </routes>
