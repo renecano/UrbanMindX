@@ -1,56 +1,109 @@
-<!-- perfil_toluca_real.rou.xml -->
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    normal.rou.xml — v2
+    Interseccion real: Venustiano Carranza y Blvr. Pino Suarez, Toluca
+    Coordenadas: 19.2790338, -99.6483286
+
+    Geometria real de la interseccion:
+        Pino Suarez (Norte-Sur):
+            norte_entrada: 3 carriles (hacia el norte)
+            sur_entrada:   2 carriles (hacia el sur)
+        Venustiano Carranza (Este-Oeste):
+            oeste_entrada: 3 carriles (hacia el oeste)
+            este_entrada:  2 carriles (hacia el este)
+
+    Flujos proporcionales a carriles:
+        3 carriles = 60% del flujo total de esa calle
+        2 carriles = 40% del flujo total de esa calle
+
+    Fuente: Estudio de Movilidad Urbana UAEM 2022
+            44.7 vehiculos/minuto = 2,682 veh/hora total
+            Distribuido por capacidad de carriles reales
+
+    Perfil temporal:
+        Pre-pico  (6am-7am):   norte=450  sur=300  oeste=450  este=300
+        Hora pico (7am-9am):   norte=1050 sur=700  oeste=1050 este=700
+        Post-pico (9am-12pm):  norte=600  sur=400  oeste=600  este=400
+-->
 <routes>
-    <vType id="auto_normal" accel="2.6" decel="4.5" sigma="0.5"
-           length="5" minGap="2.5" maxSpeed="13.89"/>
 
-    <!-- ===================== -->
-    <!-- PRE-PICO: 6am - 7am  -->
-    <!-- 300 veh/hora          -->
-    <!-- ===================== -->
-    <flow id="pre_N_S" type="auto_normal"
+    <vType id="auto_normal"   accel="2.6" decel="4.5" sigma="0.5"
+           length="5" minGap="2.5" maxSpeed="13.89" guiShape="passenger"/>
+    <vType id="auto_autonomo" accel="2.6" decel="4.5" sigma="0.0"
+           length="5" minGap="2.5" maxSpeed="13.89" guiShape="passenger"
+           color="0,0,255"/>
+
+    <!-- ============================================ -->
+    <!-- FASE 1 — PRE-PICO: 6am a 7am               -->
+    <!-- ============================================ -->
+
+    <!-- Pino Suarez Norte (3 carriles) -->
+    <flow id="pre_norte" type="auto_normal"
           from="norte_entrada" to="sur_salida"
-          begin="0" end="3600" vehsPerHour="300"/>
-    <flow id="pre_S_N" type="auto_normal"
+          begin="0" end="3600" vehsPerHour="450"/>
+
+    <!-- Pino Suarez Sur (2 carriles) -->
+    <flow id="pre_sur" type="auto_normal"
           from="sur_entrada" to="norte_salida"
           begin="0" end="3600" vehsPerHour="300"/>
-    <flow id="pre_E_O" type="auto_normal"
+
+    <!-- Venustiano Carranza Oeste (3 carriles) -->
+    <flow id="pre_oeste" type="auto_normal"
+          from="oeste_entrada" to="este_salida"
+          begin="0" end="3600" vehsPerHour="450"/>
+
+    <!-- Venustiano Carranza Este (2 carriles) -->
+    <flow id="pre_este" type="auto_normal"
           from="este_entrada" to="oeste_salida"
           begin="0" end="3600" vehsPerHour="300"/>
-    <flow id="pre_O_E" type="auto_normal"
-          from="oeste_entrada" to="este_salida"
-          begin="0" end="3600" vehsPerHour="300"/>
 
-    <!-- ======================== -->
-    <!-- HORA PICO: 7am - 9am    -->
-    <!-- 700 veh/hora             -->
-    <!-- ======================== -->
-    <flow id="pico_N_S" type="auto_normal"
+    <!-- ============================================ -->
+    <!-- FASE 2 — HORA PICO: 7am a 9am              -->
+    <!-- Maxima congestion — datos reales UAEM 2022  -->
+    <!-- ============================================ -->
+
+    <!-- Pino Suarez Norte (3 carriles) -->
+    <flow id="pico_norte" type="auto_normal"
           from="norte_entrada" to="sur_salida"
-          begin="3600" end="10800" vehsPerHour="700"/>
-    <flow id="pico_S_N" type="auto_normal"
+          begin="3600" end="10800" vehsPerHour="1050"/>
+
+    <!-- Pino Suarez Sur (2 carriles) -->
+    <flow id="pico_sur" type="auto_normal"
           from="sur_entrada" to="norte_salida"
           begin="3600" end="10800" vehsPerHour="700"/>
-    <flow id="pico_E_O" type="auto_normal"
-          from="este_entrada" to="oeste_salida"
-          begin="3600" end="10800" vehsPerHour="700"/>
-    <flow id="pico_O_E" type="auto_normal"
+
+    <!-- Venustiano Carranza Oeste (3 carriles) -->
+    <flow id="pico_oeste" type="auto_normal"
           from="oeste_entrada" to="este_salida"
+          begin="3600" end="10800" vehsPerHour="1050"/>
+
+    <!-- Venustiano Carranza Este (2 carriles) -->
+    <flow id="pico_este" type="auto_normal"
+          from="este_entrada" to="oeste_salida"
           begin="3600" end="10800" vehsPerHour="700"/>
 
-    <!-- ========================= -->
-    <!-- POST-PICO: 9am - 12pm    -->
-    <!-- 400 veh/hora              -->
-    <!-- ========================= -->
-    <flow id="post_N_S" type="auto_normal"
+    <!-- ============================================ -->
+    <!-- FASE 3 — POST-PICO: 9am a 12pm             -->
+    <!-- ============================================ -->
+
+    <!-- Pino Suarez Norte (3 carriles) -->
+    <flow id="post_norte" type="auto_normal"
           from="norte_entrada" to="sur_salida"
-          begin="10800" end="21600" vehsPerHour="400"/>
-    <flow id="post_S_N" type="auto_normal"
+          begin="10800" end="21600" vehsPerHour="600"/>
+
+    <!-- Pino Suarez Sur (2 carriles) -->
+    <flow id="post_sur" type="auto_normal"
           from="sur_entrada" to="norte_salida"
           begin="10800" end="21600" vehsPerHour="400"/>
-    <flow id="post_E_O" type="auto_normal"
+
+    <!-- Venustiano Carranza Oeste (3 carriles) -->
+    <flow id="post_oeste" type="auto_normal"
+          from="oeste_entrada" to="este_salida"
+          begin="10800" end="21600" vehsPerHour="600"/>
+
+    <!-- Venustiano Carranza Este (2 carriles) -->
+    <flow id="post_este" type="auto_normal"
           from="este_entrada" to="oeste_salida"
           begin="10800" end="21600" vehsPerHour="400"/>
-    <flow id="post_O_E" type="auto_normal"
-          from="oeste_entrada" to="este_salida"
-          begin="10800" end="21600" vehsPerHour="400"/>
+
 </routes>
