@@ -1,10 +1,13 @@
 # ============================================================
-# entorno_semaforo.py — Persona 2
-# Entorno Gymnasium para el agente semáforo.
-# Alineado con la red real de Persona 1:
-#   - SEMAFORO_ID = "centro"
-#   - 4 fases: 0=NS verde, 1=NS amarillo, 2=EO verde, 3=EO amarillo
-#   - Edges: norte_entrada, sur_entrada, este_entrada, oeste_entrada
+# entorno_semaforo.py — actualizado para interseccion real
+# Venustiano Carranza y Blvr. Pino Suarez, Toluca
+#
+# Cambio respecto a version anterior:
+#   observation_space actualizado para reflejar carriles reales:
+#       norte (3 carriles): max 150 autos
+#       sur   (2 carriles): max 100 autos
+#       oeste (3 carriles): max 150 autos
+#       este  (2 carriles): max 100 autos
 # ============================================================
 
 import numpy as np
@@ -16,61 +19,53 @@ from entornos.recompensas import (
 )
 from entrenamiento.config import REWARD_SEMAFORO, MAX_PASOS
 
-# Fases válidas que el agente puede elegir (excluye amarillos)
-FASE_NS = 0   # Norte-Sur en verde
-FASE_EO = 2   # Este-Oeste en verde
+FASE_NS = 0
+FASE_EO = 2
+
 
 class EntornoSemaforo(gym.Env):
     """
-    Entorno RL para el agente semáforo.
+    Entorno RL para el agente semaforo.
+    Interseccion real: Venustiano Carranza y Blvr. Pino Suarez, Toluca.
 
-    El agente solo decide entre 2 acciones:
-        0 = mantener fase actual (verde)
-        1 = cambiar a la otra fase verde
-
-    Las fases amarillas (1 y 3) se insertan automáticamente
-    como transición — el agente no las controla directamente.
-
-    Observación (6 valores float32):
+    Observacion (6 valores float32):
         [autos_norte, autos_sur, autos_este, autos_oeste,
          tiempo_en_fase, fase_actual_encoded]
 
-        fase_actual_encoded:
-            0.0 = Norte-Sur en verde (fase 0)
-            1.0 = Este-Oeste en verde (fase 2)
+        Limites reales por direccion:
+            norte (3 carriles) → 0 a 150 autos
+            sur   (2 carriles) → 0 a 100 autos
+            oeste (3 carriles) → 0 a 150 autos
+            este  (2 carriles) → 0 a 100 autos
 
-    Recompensa:
-        Negativa proporcional a la espera total.
-        Penalización extra por cambios prematuros.
+    Acciones:
+        0 = mantener fase actual
+        1 = cambiar a la otra fase verde
     """
 
     metadata = {"render_modes": ["human"]}
 
     def __init__(self, sim, modo_recompensa: str = "simple"):
-        """
-        Args:
-            sim:             SimulacionTrafico o SimulacionMock
-            modo_recompensa: "simple" o "completa"
-        """
         super().__init__()
         self.sim             = sim
         self.modo_recompensa = modo_recompensa
         self._pasos          = 0
         self._tiempo_en_fase = 0
-        self._fase_verde     = FASE_NS  # fase verde actual (0 o 2)
+        self._fase_verde     = FASE_NS
 
-        # ---- Espacio de observación ----
-        # [autos_N, autos_S, autos_E, autos_O, tiempo_fase, fase_encoded]
+        # ---- Espacio de observacion ----
+        # Limites ajustados a carriles reales de la interseccion
         self.observation_space = spaces.Box(
             low=np.array( [0,   0,   0,   0,   0,  0.0], dtype=np.float32),
-            high=np.array([100, 100, 100, 100, 120, 1.0], dtype=np.float32),
+            high=np.array([150, 100, 100, 150, 120, 1.0], dtype=np.float32),
+            #               ↑         ↑         ↑
+            #            norte(3)  este(2)  oeste(3)
+            #                   ↑
+            #                sur(2)
         )
 
-        # ---- Espacio de acción ----
-        # 0 = mantener, 1 = cambiar
+        # ---- Espacio de accion ----
         self.action_space = spaces.Discrete(2)
-
-    # ----------------------------------------------------------
 
     def reset(self, seed=None, options=None):
         super().reset(seed=seed)
@@ -86,24 +81,17 @@ class EntornoSemaforo(gym.Env):
         if accion == 1:
             min_tiempo = REWARD_SEMAFORO["min_tiempo_fase"]
             if self._tiempo_en_fase < min_tiempo:
-                # Demasiado pronto — penalizar pero no cambiar
                 cambio_prematuro = True
             else:
-                # Cambiar: insertar fase amarilla primero
-                fase_amarilla = self._fase_verde + 1  # 0→1 o 2→3
+                fase_amarilla = self._fase_verde + 1
                 self.sim.set_fase_semaforo(fase_amarilla)
-
-                # Avanzar 3 pasos para la transición amarilla
                 for _ in range(3):
                     self.sim.avanzar_paso()
                     self._pasos += 1
-
-                # Ahora poner la nueva fase verde
                 self._fase_verde = FASE_EO if self._fase_verde == FASE_NS else FASE_NS
                 self.sim.set_fase_semaforo(self._fase_verde)
                 self._tiempo_en_fase = 0
 
-        # Avanzar 1 paso normal
         self.sim.avanzar_paso()
         self._pasos          += 1
         self._tiempo_en_fase += 1
@@ -120,23 +108,19 @@ class EntornoSemaforo(gym.Env):
         return obs, reward, done, False, info
 
     def render(self):
-        e     = self.sim.get_estado_interseccion()
-        fase  = "NS" if self._fase_verde == FASE_NS else "EO"
+        e    = self.sim.get_estado_interseccion()
+        fase = "Pino Suarez (NS)" if self._fase_verde == FASE_NS else "Venustiano Carranza (EO)"
         print(
             f"[Paso {self._pasos:4d}] "
-            f"N:{e['autos_norte']:2d} S:{e['autos_sur']:2d} "
-            f"E:{e['autos_este']:2d} O:{e['autos_oeste']:2d} | "
-            f"Fase:{fase} t={self._tiempo_en_fase:3d}s | "
-            f"Espera:{e['espera_total']:.1f}s Filas:{e['filas_total']}"
+            f"Norte:{e['autos_norte']:3d} Sur:{e['autos_sur']:3d} "
+            f"Este:{e['autos_este']:3d} Oeste:{e['autos_oeste']:3d} | "
+            f"Verde:{fase} t={self._tiempo_en_fase:3d}s | "
+            f"Espera:{e['espera_total']:.1f}s"
         )
 
-    # ----------------------------------------------------------
-    # Helpers privados
-    # ----------------------------------------------------------
-
     def _get_obs(self) -> np.ndarray:
-        e             = self.sim.get_estado_interseccion()
-        fase_encoded  = 0.0 if self._fase_verde == FASE_NS else 1.0
+        e            = self.sim.get_estado_interseccion()
+        fase_encoded = 0.0 if self._fase_verde == FASE_NS else 1.0
         return np.array([
             e["autos_norte"],
             e["autos_sur"],
