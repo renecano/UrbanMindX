@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    gui-settings.xml — UrbanMind X
+    Tema visual futurista para exposición universitaria.
+    Optimizado para demostración en pantalla grande.
+-->
+<viewsettings>
+
+    <!-- ============================================================ -->
+    <!-- VIEWPORT — centrado en la intersección                      -->
+    <!-- ============================================================ -->
+    <viewport x="0.00" y="0.00" zoom="350.00"/>
+
+    <!-- ============================================================ -->
+    <!-- DELAY — pausa entre pasos para visualización fluida (ms)    -->
+    <!-- ============================================================ -->
+    <delay value="50"/>
+
+    <!-- ============================================================ -->
+    <!-- ESQUEMA DE COLORES — tema oscuro futurista                  -->
+    <!-- ============================================================ -->
+    <scheme name="urbanmind_dark">
+
+        <!-- Fondo negro -->
+        <background backgroundColor="0,0,0,255"
+                     showGrid="0"
+                     gridXSize="100.00"
+                     gridYSize="100.00"/>
+
+        <!-- Carriles: azul neón sobre fondo oscuro -->
+        <lanes>
+            <colorScheme name="uniform">
+                <entry color="20,20,80,255"/>          <!-- azul muy oscuro -->
+            </colorScheme>
+            <colorScheme name="by selection">
+                <entry color="0,200,255,255"/>          <!-- cian eléctrico seleccionado -->
+            </colorScheme>
+
+            <laneWidth exaggeration="1.2"/>
+            <laneShowBorders value="1"/>
+            <borderColor value="0,180,255,80"/>        <!-- borde azul translúcido -->
+            <showLinkDecals value="1"/>
+            <showLinkRules value="1"/>
+            <showRails value="0"/>
+            <showBikeMarkings value="0"/>
+            <showLaneChangePreferences value="0"/>
+            <detail value="2"/>
+            <showSeams value="0"/>
+        </lanes>
+
+        <!-- Vehículos: colores por velocidad (rojo=detenido, verde=fluido) -->
+        <vehicles>
+            <colorScheme name="by speed">
+                <entry color="230,30,30,255"  value="0.00"/>    <!-- detenido: rojo -->
+                <entry color="255,140,0,255"  value="4.00"/>    <!-- lento: naranja -->
+                <entry color="255,230,0,255"  value="8.00"/>    <!-- medio: amarillo -->
+                <entry color="50,255,100,255" value="13.89"/>   <!-- fluido: verde neón -->
+            </colorScheme>
+            <minSize value="1.50" name="minSize"/>
+            <exaggeration value="1.40"/>
+            <showBlinker value="1"/>
+            <drawLaneChangePreferences value="0"/>
+            <showMinGap value="0"/>
+            <showBTStop value="0"/>
+            <showRouteIndex value="0"/>
+            <drawReversed value="0"/>
+            <showParkingInfo value="0"/>
+        </vehicles>
+
+        <!-- Semáforos: más visibles -->
+        <tls>
+            <colorScheme name="by state">
+                <entry color="230,0,0,220"/>        <!-- rojo -->
+                <entry color="255,230,0,220"/>      <!-- amarillo -->
+                <entry color="0,230,80,220"/>       <!-- verde -->
+            </colorScheme>
+            <showTLSPhases value="1"/>
+            <showTLSIndex value="0"/>
+            <drawTLSRelevantConnections value="1"/>
+            <drawTLSRelevantConnectionsAll value="0"/>
+        </tls>
+
+        <!-- Junctions -->
+        <junctions>
+            <colorScheme name="uniform">
+                <entry color="10,10,40,255"/>       <!-- azul muy oscuro -->
+            </colorScheme>
+            <drawShape value="1"/>
+            <drawCrossingsAndWalkingareas value="0"/>
+        </junctions>
+
+        <!-- Texto UI -->
+        <legend>
+            <showColorLegend value="1"/>
+            <showSizeLegend value="0"/>
+        </legend>
+
+        <!-- Etiquetas de velocidad en vehículos (útil en demo) -->
+        <vehicleTextParams>
+            <show value="0"/>   <!-- poner 1 para ver velocidad de cada vehículo -->
+        </vehicleTextParams>
+
+        <!-- Decoraciones de la intersección -->
+        <detectors>
+            <colorScheme name="uniform">
+                <entry color="0,200,255,180"/>
+            </colorScheme>
+            <showDet value="1"/>
+        </detectors>
+
+    </scheme>
+
+    <!-- ============================================================ -->
+    <!-- MOSTRAR INDICADORES EN PANTALLA                             -->
+    <!-- ============================================================ -->
+    <decals>
+        <!-- Sin imagen de fondo satelital — se puede agregar si se tiene el .png -->
+    </decals>
+
+    <breakpoints>
+        <!-- Sin breakpoints automáticos en demo -->
+    </breakpoints>
+
+</viewsettings>

@@ -1,28 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-    normal.rou.xml — VERSION FINAL
-    Interseccion real: Venustiano Carranza y Blvr. Pino Suarez, Toluca
+    desbalanceado.rou.xml — v2 CORREGIDA
+    Intersección real: Venustiano Carranza × Blvr. Pino Suárez, Toluca
     Coordenadas: 19.2790338, -99.6483286
 
-    Fuente: Caracterizacion de la Movilidad Urbana en la Ecozona
+    Fuente: Caracterización de la Movilidad Urbana en la Ecozona
             de la Ciudad de Toluca, Revista Quivera UAEM 2022.
-            Aforos realizados mayo 2021 en Blvr. Pino Suarez.
+            Aforos realizados mayo 2021 en Blvr. Pino Suárez.
 
-    Geometria real de la interseccion:
-        Pino Suarez  (Norte-Sur): norte=3 carriles, sur=2 carriles
-        Venustiano Carranza (E-O): oeste=3 carriles, este=2 carriles
+    CORRECCIÓN v2:
+        - Header corregido (antes decía "normal.rou.xml", era incorrecto)
+        - Flujos UAEM directos por sentido (sin proporcionalizar):
+          norte y sur tienen el mismo vehsPerHour por ser conteos
+          de dirección independientes en el aforo UAEM.
+          Esto genera el "desbalance" respecto a la capacidad:
+          sur (2 carriles) recibe casi el mismo flujo que norte (3 carriles),
+          saturando el acceso sur — escenario real de congestión.
 
-    Flujos por sentido (veh/hora total por direccion):
-        Periodo     Pino Suarez   Carranza
-        Pre-pico    610 c/sent    330 c/sent
-        Hora pico   870 c/sent    470 c/sent
-        Post-pico   700 c/sent    375 c/sent
+    Flujos por sentido (aforo directo, veh/hora):
+        Período     Norte   Sur    Oeste   Este
+        Pre-pico    610     610    330     330
+        Hora pico   870     870    470     470
+        Post-pico   700     700    375     375
 
     Tiempos en segundos:
-        0     = 6:00am
-        3600  = 7:00am
-        10800 = 9:00am
-        21600 = 12:00pm
+        0     = 6:00am    |   3600  = 7:00am
+        10800 = 9:00am    |   21600 = 12:00pm
+
+    Compatible con: desbalanceado.sumocfg (begin=0, end=21600)
 -->
 <routes>
 
@@ -33,64 +38,51 @@
            color="0,0,255"/>
 
     <!-- ================================================ -->
-    <!-- PRE-PICO: 6am a 7am                             -->
-    <!-- Pino Suarez: 610 veh/h por sentido              -->
-    <!-- Venustiano Carranza: 330 veh/h por sentido      -->
+    <!-- PRE-PICO: 6am a 7am (0 – 3600 s)               -->
     <!-- ================================================ -->
     <flow id="pre_norte" type="auto_normal"
           from="norte_entrada" to="sur_salida"
           begin="0" end="3600" vehsPerHour="610"/>
-
     <flow id="pre_sur" type="auto_normal"
           from="sur_entrada" to="norte_salida"
           begin="0" end="3600" vehsPerHour="610"/>
-
     <flow id="pre_oeste" type="auto_normal"
           from="oeste_entrada" to="este_salida"
           begin="0" end="3600" vehsPerHour="330"/>
-
     <flow id="pre_este" type="auto_normal"
           from="este_entrada" to="oeste_salida"
           begin="0" end="3600" vehsPerHour="330"/>
 
     <!-- ================================================ -->
-    <!-- HORA PICO: 7am a 9am                            -->
-    <!-- Pino Suarez: 870 veh/h por sentido              -->
-    <!-- Venustiano Carranza: 470 veh/h por sentido      -->
+    <!-- HORA PICO: 7am a 9am (3600 – 10800 s)          -->
+    <!-- Escenario de mayor desbalance:                  -->
+    <!-- sur (2c) recibe 870 veh/h = saturación real     -->
     <!-- ================================================ -->
     <flow id="pico_norte" type="auto_normal"
           from="norte_entrada" to="sur_salida"
           begin="3600" end="10800" vehsPerHour="870"/>
-
     <flow id="pico_sur" type="auto_normal"
           from="sur_entrada" to="norte_salida"
           begin="3600" end="10800" vehsPerHour="870"/>
-
     <flow id="pico_oeste" type="auto_normal"
           from="oeste_entrada" to="este_salida"
           begin="3600" end="10800" vehsPerHour="470"/>
-
     <flow id="pico_este" type="auto_normal"
           from="este_entrada" to="oeste_salida"
           begin="3600" end="10800" vehsPerHour="470"/>
 
     <!-- ================================================ -->
-    <!-- POST-PICO: 9am a 12pm                           -->
-    <!-- Pino Suarez: 700 veh/h por sentido              -->
-    <!-- Venustiano Carranza: 375 veh/h por sentido      -->
+    <!-- POST-PICO: 9am a 12pm (10800 – 21600 s)        -->
     <!-- ================================================ -->
     <flow id="post_norte" type="auto_normal"
           from="norte_entrada" to="sur_salida"
           begin="10800" end="21600" vehsPerHour="700"/>
-
     <flow id="post_sur" type="auto_normal"
           from="sur_entrada" to="norte_salida"
           begin="10800" end="21600" vehsPerHour="700"/>
-
     <flow id="post_oeste" type="auto_normal"
           from="oeste_entrada" to="este_salida"
           begin="10800" end="21600" vehsPerHour="375"/>
-
     <flow id="post_este" type="auto_normal"
           from="este_entrada" to="oeste_salida"
           begin="10800" end="21600" vehsPerHour="375"/>

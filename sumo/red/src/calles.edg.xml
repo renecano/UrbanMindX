@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <edges>
-  <!-- Entradas -->
-  <edge id="norte_entrada" from="norte" to="centro" numLanes="2" speed="13.89"/>
+  <!-- Entradas — carriles reales Toluca (Persona 1 corregido) -->
+  <edge id="norte_entrada" from="norte" to="centro" numLanes="3" speed="13.89"/>
   <edge id="sur_entrada"   from="sur"   to="centro" numLanes="2" speed="13.89"/>
   <edge id="este_entrada"  from="este"  to="centro" numLanes="2" speed="13.89"/>
-  <edge id="oeste_entrada" from="oeste" to="centro" numLanes="2" speed="13.89"/>
+  <edge id="oeste_entrada" from="oeste" to="centro" numLanes="3" speed="13.89"/>
 
   <!-- Salidas -->
-  <edge id="norte_salida" from="centro" to="norte" numLanes="2" speed="13.89"/>
+  <edge id="norte_salida" from="centro" to="norte" numLanes="3" speed="13.89"/>
   <edge id="sur_salida"   from="centro" to="sur"   numLanes="2" speed="13.89"/>
   <edge id="este_salida"  from="centro" to="este"  numLanes="2" speed="13.89"/>
-  <edge id="oeste_salida" from="centro" to="oeste" numLanes="2" speed="13.89"/>
+  <edge id="oeste_salida" from="centro" to="oeste" numLanes="3" speed="13.89"/>
 </edges>

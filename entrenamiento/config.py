@@ -1,20 +1,19 @@
 # ============================================================
-# config.py — Persona 3
+# entrenamiento/config.py — UrbanMind X
 # Todos los hiperparámetros del proyecto en un solo lugar.
-# Cambiar valores aquí afecta todo el sistema.
 # ============================================================
 
 # ------------------------------------------------------------
 # Hiperparámetros PPO — Semáforo
 # ------------------------------------------------------------
 PPO_SEMAFORO = {
-    "learning_rate": 0.0003,   # qué tan rápido aprende la red
-    "gamma":         0.99,     # descuento de recompensas futuras (0-1)
-    "n_steps":       2048,     # pasos antes de cada actualización
-    "batch_size":    64,       # muestras por mini-batch
-    "ent_coef":      0.01,     # coeficiente de entropía (exploración)
-    "n_epochs":      10,       # épocas por actualización
-    "clip_range":    0.2,      # clip de PPO (no cambiar sin razón)
+    "learning_rate": 0.0003,
+    "gamma":         0.99,
+    "n_steps":       2048,
+    "batch_size":    64,
+    "ent_coef":      0.01,
+    "n_epochs":      10,
+    "clip_range":    0.2,
     "verbose":       1,
 }
 
@@ -26,7 +25,7 @@ PPO_VEHICULO = {
     "gamma":         0.99,
     "n_steps":       2048,
     "batch_size":    64,
-    "ent_coef":      0.005,    # menos exploración que el semáforo
+    "ent_coef":      0.005,
     "n_epochs":      10,
     "clip_range":    0.2,
     "verbose":       1,
@@ -36,12 +35,16 @@ PPO_VEHICULO = {
 # Duración del entrenamiento
 # ------------------------------------------------------------
 TIMESTEPS_SEMAFORO = 500_000
-TIMESTEPS_VEHICULO = 500_000 
+TIMESTEPS_VEHICULO = 500_000
 TIMESTEPS_CONJUNTO = 200_000
+
 # ------------------------------------------------------------
-# Rutas de archivos
+# Rutas de archivos SUMO (relativas a la raíz del proyecto)
 # ------------------------------------------------------------
-SUMO_CONFIG      = "sumo/config/simulacion.sumocfg"
+SUMO_CONFIG            = "sumo/config/simulacion.sumocfg"      # perfil normal (6h)
+SUMO_CONFIG_HORA_PICO  = "sumo/config/hora_pico.sumocfg"       # hora pico (2h)
+SUMO_CONFIG_DESBAL     = "sumo/config/desbalanceado.sumocfg"   # desbalanceado (6h)
+
 MODELO_SEMAFORO  = "modelos/semaforo"
 MODELO_VEHICULO  = "modelos/vehiculo"
 RESULTADOS_DIR   = "resultados/"
@@ -49,9 +52,10 @@ RESULTADOS_DIR   = "resultados/"
 # ------------------------------------------------------------
 # Parámetros de la simulación
 # ------------------------------------------------------------
-PASO_SIMULACION  = 1.0    # segundos por step (no cambiar)
-MAX_PASOS = 21600   # 6 horas × 3600 segundos
-PUERTO_SUMO      = 8813   # puerto TCP de TraCI
+PASO_SIMULACION  = 1.0       # segundos por step (no cambiar — alineado con step-length en .sumocfg)
+MAX_PASOS        = 21600     # 6 horas × 3600 s — alineado con simulacion.sumocfg y desbalanceado.sumocfg
+MAX_PASOS_PICO   = 7200      # 2 horas × 3600 s — alineado con hora_pico.sumocfg
+PUERTO_SUMO      = 8813
 
 # ------------------------------------------------------------
 # Pesos de la función de recompensa — Semáforo
@@ -59,8 +63,8 @@ PUERTO_SUMO      = 8813   # puerto TCP de TraCI
 REWARD_SEMAFORO = {
     "peso_espera":          -0.5,
     "peso_filas":           -0.3,
-    "penalizacion_cambio":  -5.0,   # cambiar fase antes de N segundos
-    "min_tiempo_fase":       10,    # segundos mínimos antes de cambiar
+    "penalizacion_cambio":  -5.0,
+    "min_tiempo_fase":       10,    # segundos mínimos antes de permitir cambio
 }
 
 # ------------------------------------------------------------

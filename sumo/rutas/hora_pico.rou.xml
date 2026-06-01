@@ -1,15 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-    hora_pico.rou.xml — VERSION FINAL
-    Interseccion real: Venustiano Carranza y Blvr. Pino Suarez, Toluca
+    hora_pico.rou.xml — v2 CORREGIDA
+    Intersección real: Venustiano Carranza × Blvr. Pino Suárez, Toluca
     Fuente: Quivera UAEM 2022 — aforos mayo 2021
 
-    Simula 2 horas de hora pico con rampa de subida y bajada:
-        0-30min:  inicio de pico  (70% del maximo)
-        30-90min: pico maximo     (100%)
-        90-120min: fin de pico    (85%)
+    CORRECCIÓN v2: aplicada asimetría real de carriles (3:2 = 60%:40%)
+    en cada sentido, igual que normal.rou.xml.
 
-    Flujos maximo: Pino Suarez=870  Carranza=470 veh/h por sentido
+    Simula 2 horas de hora pico con rampa de subida y bajada:
+        0-30min  (0-1800s):    inicio de pico  (70% del máximo)
+        30-90min (1800-5400s): pico máximo     (100%)
+        90-120min(5400-7200s): fin de pico     (85%)
+
+    Flujos máximos fuente UAEM:
+        Pino Suárez = 1750 veh/h total sentido
+        Carranza    = 940  veh/h total sentido
+
+    Compatible con: hora_pico.sumocfg (begin=0, end=7200)
 -->
 <routes>
 
@@ -19,49 +26,64 @@
            length="5" minGap="2.5" maxSpeed="13.89" guiShape="passenger"
            color="0,0,255"/>
 
-    <!-- INICIO DE PICO: 0 a 30 min — 70% del maximo -->
-    <!-- Pino=609  Carranza=329 veh/h                -->
+    <!-- ================================================ -->
+    <!-- INICIO DE PICO: 0-30 min (0-1800 s) — 70%      -->
+    <!-- Pino Suárez total: 1225 veh/h                   -->
+    <!--   Norte (3c, 60%): 735  | Sur  (2c, 40%): 490  -->
+    <!-- Carranza total: 658 veh/h                       -->
+    <!--   Oeste (3c, 60%): 395  | Este (2c, 40%): 263  -->
+    <!-- ================================================ -->
     <flow id="inicio_norte" type="auto_normal"
           from="norte_entrada" to="sur_salida"
-          begin="0" end="1800" vehsPerHour="609"/>
+          begin="0" end="1800" vehsPerHour="735"/>
     <flow id="inicio_sur" type="auto_normal"
           from="sur_entrada" to="norte_salida"
-          begin="0" end="1800" vehsPerHour="609"/>
+          begin="0" end="1800" vehsPerHour="490"/>
     <flow id="inicio_oeste" type="auto_normal"
           from="oeste_entrada" to="este_salida"
-          begin="0" end="1800" vehsPerHour="329"/>
+          begin="0" end="1800" vehsPerHour="395"/>
     <flow id="inicio_este" type="auto_normal"
           from="este_entrada" to="oeste_salida"
-          begin="0" end="1800" vehsPerHour="329"/>
+          begin="0" end="1800" vehsPerHour="263"/>
 
-    <!-- PICO MAXIMO: 30 a 90 min — 100% -->
-    <!-- Pino=870  Carranza=470 veh/h    -->
+    <!-- ================================================ -->
+    <!-- PICO MÁXIMO: 30-90 min (1800-5400 s) — 100%    -->
+    <!-- Pino Suárez total: 1750 veh/h                   -->
+    <!--   Norte (3c, 60%): 1050 | Sur  (2c, 40%): 700  -->
+    <!-- Carranza total: 940 veh/h                       -->
+    <!--   Oeste (3c, 60%): 564  | Este (2c, 40%): 376  -->
+    <!-- ================================================ -->
     <flow id="pico_norte" type="auto_normal"
           from="norte_entrada" to="sur_salida"
-          begin="1800" end="5400" vehsPerHour="870"/>
+          begin="1800" end="5400" vehsPerHour="1050"/>
     <flow id="pico_sur" type="auto_normal"
           from="sur_entrada" to="norte_salida"
-          begin="1800" end="5400" vehsPerHour="870"/>
+          begin="1800" end="5400" vehsPerHour="700"/>
     <flow id="pico_oeste" type="auto_normal"
           from="oeste_entrada" to="este_salida"
-          begin="1800" end="5400" vehsPerHour="470"/>
+          begin="1800" end="5400" vehsPerHour="564"/>
     <flow id="pico_este" type="auto_normal"
           from="este_entrada" to="oeste_salida"
-          begin="1800" end="5400" vehsPerHour="470"/>
+          begin="1800" end="5400" vehsPerHour="376"/>
 
-    <!-- FIN DE PICO: 90 a 120 min — 85% -->
-    <!-- Pino=740  Carranza=400 veh/h    -->
+    <!-- ================================================ -->
+    <!-- FIN DE PICO: 90-120 min (5400-7200 s) — 85%    -->
+    <!-- Pino Suárez total: 1488 veh/h                   -->
+    <!--   Norte (3c, 60%): 893  | Sur  (2c, 40%): 595  -->
+    <!-- Carranza total: 799 veh/h                       -->
+    <!--   Oeste (3c, 60%): 479  | Este (2c, 40%): 320  -->
+    <!-- ================================================ -->
     <flow id="fin_norte" type="auto_normal"
           from="norte_entrada" to="sur_salida"
-          begin="5400" end="7200" vehsPerHour="740"/>
+          begin="5400" end="7200" vehsPerHour="893"/>
     <flow id="fin_sur" type="auto_normal"
           from="sur_entrada" to="norte_salida"
-          begin="5400" end="7200" vehsPerHour="740"/>
+          begin="5400" end="7200" vehsPerHour="595"/>
     <flow id="fin_oeste" type="auto_normal"
           from="oeste_entrada" to="este_salida"
-          begin="5400" end="7200" vehsPerHour="400"/>
+          begin="5400" end="7200" vehsPerHour="479"/>
     <flow id="fin_este" type="auto_normal"
           from="este_entrada" to="oeste_salida"
-          begin="5400" end="7200" vehsPerHour="400"/>
+          begin="5400" end="7200" vehsPerHour="320"/>
 
 </routes>

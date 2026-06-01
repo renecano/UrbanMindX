@@ -73,6 +73,7 @@ def demo():
     from stable_baselines3 import PPO
 
     sim = SimulacionTrafico(gui=True)
+    sim.iniciar()
     env_s = EntornoSemaforo(sim)
     env_v = EntornoVehiculo(sim)
 
