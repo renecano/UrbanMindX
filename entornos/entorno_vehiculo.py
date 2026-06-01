@@ -1,7 +1,7 @@
 # ============================================================
-# entorno_vehiculo.py — Persona 2
-# Entorno Gymnasium para el agente vehículo autónomo.
-# Alineado con la red real de Persona 1.
+# entorno_vehiculo.py — VERSION FINAL
+# Interseccion real: Venustiano Carranza y Blvr. Pino Suarez
+# Fuente datos: Quivera UAEM 2022, aforos mayo 2021
 # ============================================================
 
 import numpy as np
@@ -13,46 +13,34 @@ from entornos.recompensas import (
 )
 from entrenamiento.config import REWARD_VEHICULO, MAX_PASOS
 
-# Cambio de velocidad por acción (m/s)
+# Cambio de velocidad por accion (m/s)
 DELTA_VELOCIDAD = {
     0: -2.0,   # frenar
     1:  0.0,   # mantener
     2: +2.0,   # acelerar
 }
 
-# Umbral para detectar frenada brusca (m/s²)
 UMBRAL_FRENADA_BRUSCA = -3.0
 
 
 class EntornoVehiculo(gym.Env):
     """
-    Entorno RL para vehículos autónomos.
+    Entorno RL para vehiculos autonomos.
+    Interseccion: Venustiano Carranza y Blvr. Pino Suarez, Toluca.
 
-    Un modelo entrenado aquí controla cualquier vehículo
-    de la simulación. Durante evaluación se aplica a todos.
-
-    Observación (6 valores float32):
+    Observacion (6 valores float32):
         [velocidad, distancia_al_frente, distancia_semaforo,
          semaforo_verde (0/1), carril_actual, tiempo_detenido]
 
     Acciones:
         0 = frenar     (-2 m/s)
-        1 = mantener   (0 m/s)
+        1 = mantener   (sin cambio)
         2 = acelerar   (+2 m/s)
-
-    Recompensa:
-        Premia avance fluido y seguro.
-        Penaliza frenadas bruscas, cruzar en rojo y colisiones.
     """
 
     metadata = {"render_modes": ["human"]}
 
     def __init__(self, sim, modo_recompensa: str = "simple"):
-        """
-        Args:
-            sim:             SimulacionTrafico o SimulacionMock
-            modo_recompensa: "simple" o "completa"
-        """
         super().__init__()
         self.sim             = sim
         self.modo_recompensa = modo_recompensa
@@ -60,17 +48,14 @@ class EntornoVehiculo(gym.Env):
         self._vehicle_id     = None
         self._vel_anterior   = 0.0
 
-        # ---- Espacio de observación ----
-        # [vel, dist_frente, dist_semaforo, verde, carril, detenido]
+        # ---- Espacio de observacion ----
         self.observation_space = spaces.Box(
             low=np.array( [0,   0,    0,   0,  0,   0  ], dtype=np.float32),
             high=np.array([14,  100,  200, 1,  3,   120 ], dtype=np.float32),
         )
 
-        # ---- Espacio de acción ----
+        # ---- Espacio de accion ----
         self.action_space = spaces.Discrete(3)
-
-    # ----------------------------------------------------------
 
     def reset(self, seed=None, options=None):
         super().reset(seed=seed)
@@ -83,7 +68,6 @@ class EntornoVehiculo(gym.Env):
     def step(self, accion: int):
         ids = self.sim.get_ids_vehiculos()
 
-        # Cambiar al siguiente vehículo si el actual ya salió
         if self._vehicle_id not in ids:
             self._vehicle_id = self._elegir_vehiculo()
 
@@ -109,7 +93,7 @@ class EntornoVehiculo(gym.Env):
 
     def render(self):
         if not self._vehicle_id:
-            print(f"[Paso {self._pasos:4d}] Sin vehículo activo")
+            print(f"[Paso {self._pasos:4d}] Sin vehiculo activo")
             return
         ids = self.sim.get_ids_vehiculos()
         if self._vehicle_id not in ids:
@@ -125,12 +109,7 @@ class EntornoVehiculo(gym.Env):
             f"detenido:{e['tiempo_detenido']:.1f}s"
         )
 
-    # ----------------------------------------------------------
-    # Helpers privados
-    # ----------------------------------------------------------
-
     def _elegir_vehiculo(self):
-        """Elige el primer vehículo activo disponible."""
         ids = self.sim.get_ids_vehiculos()
         return ids[0] if ids else None
 
@@ -141,8 +120,8 @@ class EntornoVehiculo(gym.Env):
         if self._vehicle_id not in ids:
             return np.zeros(6, dtype=np.float32)
 
-        e            = self.sim.get_estado_vehiculo(self._vehicle_id)
-        verde        = 1.0 if e["semaforo_estado"] == "G" else 0.0
+        e     = self.sim.get_estado_vehiculo(self._vehicle_id)
+        verde = 1.0 if e["semaforo_estado"] == "G" else 0.0
 
         return np.array([
             e["velocidad"],
