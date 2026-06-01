@@ -1,45 +1,41 @@
 # ============================================================
-# entorno_semaforo.py — VERSION FINAL
+# entorno_vehiculo.py — VERSION FINAL
 # Interseccion real: Venustiano Carranza y Blvr. Pino Suarez
 # Fuente datos: Quivera UAEM 2022, aforos mayo 2021
-#
-# Limites del observation_space ajustados a flujos reales:
-#   Pino Suarez  (norte/sur): max 870 veh/h → hasta 60 autos en cola
-#   Venustiano Carranza (e/o): max 470 veh/h → hasta 35 autos en cola
 # ============================================================
 
 import numpy as np
 import gymnasium as gym
 from gymnasium import spaces
 from entornos.recompensas import (
-    recompensa_semaforo_simple,
-    recompensa_semaforo_completa,
+    recompensa_vehiculo_simple,
+    recompensa_vehiculo_completa,
 )
-from entrenamiento.config import REWARD_SEMAFORO, MAX_PASOS
+from entrenamiento.config import REWARD_VEHICULO, MAX_PASOS
 
-FASE_NS = 0   # Pino Suarez en verde
-FASE_EO = 2   # Venustiano Carranza en verde
+# Cambio de velocidad por accion (m/s)
+DELTA_VELOCIDAD = {
+    0: -2.0,   # frenar
+    1:  0.0,   # mantener
+    2: +2.0,   # acelerar
+}
+
+UMBRAL_FRENADA_BRUSCA = -3.0
 
 
-class EntornoSemaforo(gym.Env):
+class EntornoVehiculo(gym.Env):
     """
-    Entorno RL para el agente semaforo.
+    Entorno RL para vehiculos autonomos.
     Interseccion: Venustiano Carranza y Blvr. Pino Suarez, Toluca.
-    Fuente datos: Quivera UAEM 2022.
 
     Observacion (6 valores float32):
-        [autos_norte, autos_sur, autos_este, autos_oeste,
-         tiempo_en_fase, fase_actual_encoded]
-
-        Limites reales por direccion y flujo:
-            norte (Pino Suarez, 3 carr, 870 veh/h) → max 60 autos
-            sur   (Pino Suarez, 2 carr, 870 veh/h) → max 60 autos
-            este  (Carranza,    2 carr, 470 veh/h) → max 35 autos
-            oeste (Carranza,    3 carr, 470 veh/h) → max 35 autos
+        [velocidad, distancia_al_frente, distancia_semaforo,
+         semaforo_verde (0/1), carril_actual, tiempo_detenido]
 
     Acciones:
-        0 = mantener fase actual
-        1 = cambiar a la otra fase verde
+        0 = frenar     (-2 m/s)
+        1 = mantener   (sin cambio)
+        2 = acelerar   (+2 m/s)
     """
 
     metadata = {"render_modes": ["human"]}
@@ -49,87 +45,113 @@ class EntornoSemaforo(gym.Env):
         self.sim             = sim
         self.modo_recompensa = modo_recompensa
         self._pasos          = 0
-        self._tiempo_en_fase = 0
-        self._fase_verde     = FASE_NS
+        self._vehicle_id     = None
+        self._vel_anterior   = 0.0
 
         # ---- Espacio de observacion ----
-        # Limites calculados con flujos reales de Toluca
         self.observation_space = spaces.Box(
-            low=np.array( [0,  0,  0,  0,   0,  0.0], dtype=np.float32),
-            high=np.array([60, 60, 35, 35, 120,  1.0], dtype=np.float32),
-            #               ↑   ↑   ↑   ↑
-            #             N   S   E   O
-            #         (Pino) (Pino) (Carr) (Carr)
+            low=np.array( [0,   0,    0,   0,  0,   0  ], dtype=np.float32),
+            high=np.array([14,  100,  200, 1,  3,   120 ], dtype=np.float32),
         )
 
         # ---- Espacio de accion ----
-        self.action_space = spaces.Discrete(2)
+        self.action_space = spaces.Discrete(3)
 
     def reset(self, seed=None, options=None):
         super().reset(seed=seed)
         self.sim.resetear()
-        self._pasos          = 0
-        self._tiempo_en_fase = 0
-        self._fase_verde     = FASE_NS
+        self._pasos        = 0
+        self._vel_anterior = 0.0
+        self._vehicle_id   = self._elegir_vehiculo()
         return self._get_obs(), {}
 
     def step(self, accion: int):
-        cambio_prematuro = False
+        ids = self.sim.get_ids_vehiculos()
 
-        if accion == 1:
-            min_tiempo = REWARD_SEMAFORO["min_tiempo_fase"]
-            if self._tiempo_en_fase < min_tiempo:
-                cambio_prematuro = True
-            else:
-                fase_amarilla = self._fase_verde + 1
-                self.sim.set_fase_semaforo(fase_amarilla)
-                for _ in range(3):
-                    self.sim.avanzar_paso()
-                    self._pasos += 1
-                self._fase_verde = FASE_EO if self._fase_verde == FASE_NS else FASE_NS
-                self.sim.set_fase_semaforo(self._fase_verde)
-                self._tiempo_en_fase = 0
+        if self._vehicle_id not in ids:
+            self._vehicle_id = self._elegir_vehiculo()
+
+        if self._vehicle_id:
+            estado_v  = self.sim.get_estado_vehiculo(self._vehicle_id)
+            vel_nueva = estado_v["velocidad"] + DELTA_VELOCIDAD[accion]
+            vel_nueva = float(np.clip(vel_nueva, 0.0, estado_v["velocidad_max"]))
+            self.sim.set_velocidad_vehiculo(self._vehicle_id, vel_nueva)
+            self._vel_anterior = estado_v["velocidad"]
 
         self.sim.avanzar_paso()
-        self._pasos          += 1
-        self._tiempo_en_fase += 1
+        self._pasos += 1
 
         obs    = self._get_obs()
-        reward = self._calcular_recompensa(cambio_prematuro)
+        reward = self._calcular_recompensa(accion)
         done   = self.sim.simulacion_terminada() or self._pasos >= MAX_PASOS
         info   = {
-            "pasos":            self._pasos,
-            "fase_verde":       "Pino Suarez" if self._fase_verde == FASE_NS else "Carranza",
-            "cambio_prematuro": cambio_prematuro,
+            "pasos":      self._pasos,
+            "vehicle_id": self._vehicle_id,
         }
 
         return obs, reward, done, False, info
 
     def render(self):
-        e    = self.sim.get_estado_interseccion()
-        fase = "Pino Suarez (NS)" if self._fase_verde == FASE_NS else "Carranza (EO)"
+        if not self._vehicle_id:
+            print(f"[Paso {self._pasos:4d}] Sin vehiculo activo")
+            return
+        ids = self.sim.get_ids_vehiculos()
+        if self._vehicle_id not in ids:
+            return
+        e = self.sim.get_estado_vehiculo(self._vehicle_id)
+        semaforo = "VERDE" if e["semaforo_estado"] == "G" else "ROJO"
         print(
-            f"[Paso {self._pasos:4d}] "
-            f"N:{e['autos_norte']:2d} S:{e['autos_sur']:2d} "
-            f"E:{e['autos_este']:2d} O:{e['autos_oeste']:2d} | "
-            f"Verde:{fase} t={self._tiempo_en_fase:3d}s | "
-            f"Espera:{e['espera_total']:.1f}s"
+            f"[Paso {self._pasos:4d}] ID:{self._vehicle_id} | "
+            f"vel:{e['velocidad']:.1f} m/s | "
+            f"dist_frente:{e['distancia_al_frente']:.1f}m | "
+            f"dist_semaforo:{e['distancia_semaforo']:.1f}m | "
+            f"semaforo:{semaforo} | "
+            f"detenido:{e['tiempo_detenido']:.1f}s"
         )
 
+    def _elegir_vehiculo(self):
+        ids = self.sim.get_ids_vehiculos()
+        return ids[0] if ids else None
+
     def _get_obs(self) -> np.ndarray:
-        e            = self.sim.get_estado_interseccion()
-        fase_encoded = 0.0 if self._fase_verde == FASE_NS else 1.0
+        if not self._vehicle_id:
+            return np.zeros(6, dtype=np.float32)
+        ids = self.sim.get_ids_vehiculos()
+        if self._vehicle_id not in ids:
+            return np.zeros(6, dtype=np.float32)
+
+        e     = self.sim.get_estado_vehiculo(self._vehicle_id)
+        verde = 1.0 if e["semaforo_estado"] == "G" else 0.0
+
         return np.array([
-            e["autos_norte"],
-            e["autos_sur"],
-            e["autos_este"],
-            e["autos_oeste"],
-            float(self._tiempo_en_fase),
-            fase_encoded,
+            e["velocidad"],
+            e["distancia_al_frente"],
+            e["distancia_semaforo"],
+            verde,
+            float(e["carril_actual"]),
+            e["tiempo_detenido"],
         ], dtype=np.float32)
 
-    def _calcular_recompensa(self, cambio_prematuro: bool) -> float:
-        estado = self.sim.get_estado_interseccion()
+    def _calcular_recompensa(self, accion: int) -> float:
+        if not self._vehicle_id:
+            return 0.0
+        ids = self.sim.get_ids_vehiculos()
+        if self._vehicle_id not in ids:
+            return 0.0
+
+        e = self.sim.get_estado_vehiculo(self._vehicle_id)
+
         if self.modo_recompensa == "simple":
-            return recompensa_semaforo_simple(estado)
-        return recompensa_semaforo_completa(estado, cambio_prematuro)
+            return recompensa_vehiculo_simple(e)
+
+        frenada_brusca = (e["aceleracion"] < UMBRAL_FRENADA_BRUSCA)
+        colision       = (e["distancia_al_frente"] < REWARD_VEHICULO["distancia_segura"])
+        cruzo_en_rojo  = (
+            e["semaforo_estado"] != "G"
+            and e["distancia_semaforo"] < 2.0
+            and e["velocidad"] > 0.5
+        )
+
+        return recompensa_vehiculo_completa(
+            e, frenada_brusca, colision, cruzo_en_rojo
+        )
