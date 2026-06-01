@@ -8,7 +8,7 @@ stable-baselines3==2.3.2
 sb3-contrib==2.3.0
 
 # Deep Learning (base de SB3)
-torch==2.2.0
+torch
 
 # Simulación de tráfico
 # SUMO se instala por separado: https://sumo.dlr.de/docs/Downloads.php
