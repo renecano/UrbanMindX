@@ -31,7 +31,7 @@ def recompensa_semaforo_simple(estado: dict) -> float:
     Returns:
         float negativo — más cercano a 0 es mejor
     """
-    return -float(estado["espera_total"])
+    return -float(estado["espera_total"]) / 100.0
 
 
 def recompensa_semaforo_completa(estado: dict,
