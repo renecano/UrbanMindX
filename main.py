@@ -26,7 +26,7 @@ def entrenar():
     sim = SimulacionTrafico(gui=False)
     sim.iniciar()
 
-    env_s = EntornoSemaforo(sim, modo_recompensa="simple")
+    env_s = EntornoSemaforo(sim, modo_recompensa="completa")
     env_v = EntornoVehiculo(sim, modo_recompensa="simple")
 
     pipeline = PipelineUrbanMind()
