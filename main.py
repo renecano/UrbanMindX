@@ -31,11 +31,11 @@ def entrenar():
 
     pipeline = PipelineUrbanMind()
     pipeline.etapa_1_semaforo(env_s)
-    pipeline.etapa_2_vehiculos(env_v)
-    pipeline.etapa_3_conjunto(env_s, env_v)
+    #pipeline.etapa_2_vehiculos(env_v)
+    #pipeline.etapa_3_conjunto(env_s, env_v)
 
     sim.cerrar()
-    print("\n✓ Entrenamiento completo. Modelos guardados en /modelos")
+    print("\n✓ Etapa 1 completada. Modelo semaforo guardado en /modelos")
 
 
 def evaluar():
