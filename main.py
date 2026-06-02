@@ -18,7 +18,6 @@ import subprocess
 def entrenar():
     print("Iniciando entrenamiento UrbanMind X...")
 
-    # Cambiado: usar SUMO real (TraCI) en vez de mock
     from simulacion.trafico_api import SimulacionTrafico
     from entornos.entorno_semaforo import EntornoSemaforo
     from entornos.entorno_vehiculo import EntornoVehiculo
