@@ -56,7 +56,7 @@ def recompensa_semaforo_completa(estado: dict,
         + cfg["peso_filas"]  * estado["filas_total"]
         + cfg["penalizacion_cambio"] * float(cambio_prematuro)
     )
-    return float(reward)
+    return float(reward) / 1000.0
 
 
 def recompensa_semaforo_throughput(estado: dict,
