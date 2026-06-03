@@ -63,8 +63,8 @@ PUERTO_SUMO      = 8813
 REWARD_SEMAFORO = {
     "peso_espera":          -0.5,
     "peso_filas":           -0.3,
-    "penalizacion_cambio":  -25.0,
-    "min_tiempo_fase":       20,    # segundos mínimos antes de permitir cambio
+    "penalizacion_cambio":  -10.0,
+    "min_tiempo_fase":       15,    # segundos mínimos antes de permitir cambio
 }
 
 # ------------------------------------------------------------
