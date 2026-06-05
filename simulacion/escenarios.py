@@ -38,6 +38,15 @@ ESCENARIOS = {
         modelo_semaforo = "modelos/semaforo_final",
     ),
 
+    "vehiculo_ia": Escenario(
+        nombre          = "Vehiculos Autonomos",
+        descripcion     = "Semaforo fijo + vehiculos autonomos IA.",
+        config_sumo     = "sumo/config/simulacion.sumocfg",
+        semaforo_ia     = False,        # semaforo fijo
+        vehiculos_ia    = True,         # solo vehiculos IA
+        modelo_vehiculo = "modelos/vehiculo_final",
+    ),
+
     "sistema_completo": Escenario(
         nombre          = "UrbanMind X Completo",
         descripcion     = "Semáforo IA + vehículos autónomos IA.",
