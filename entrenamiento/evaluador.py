@@ -1,10 +1,13 @@
 # ============================================================
-# evaluador.py — VERSION CORREGIDA
-# Mide correctamente:
-#   - espera_promedio: segundos promedio de espera POR PASO
-#     (espera total de la interseccion / pasos del episodio)
-#   - throughput: autos que cruzaron POR HORA real
-#     (total de autos / horas simuladas)
+# evaluador.py — VERSION CON ESCENARIOS DIFERENCIADOS
+# Cada escenario ahora carga su propio config_sumo:
+#   - tradicional/semaforo_ia/completo → simulacion.sumocfg
+#   - hora_pico                        → hora_pico.sumocfg
+#   - desbalanceado                    → desbalanceado.sumocfg
+#
+# Mide:
+#   - espera_promedio: espera total de la interseccion por paso
+#   - throughput: autos que cruzaron por hora real
 # ============================================================
 
 import os
@@ -14,18 +17,13 @@ from stable_baselines3 import PPO
 from simulacion.escenarios import ESCENARIOS, get_escenario
 from entrenamiento.config import RESULTADOS_DIR, MAX_PASOS
 
-# Duracion del episodio en horas simuladas (21,600 pasos / 3600 = 6 horas)
 HORAS_SIMULADAS = MAX_PASOS / 3600.0
 
 
 class Evaluador:
     """
     Corre cada escenario N episodios y guarda resultados en CSV.
-
-    Metricas corregidas:
-        espera_promedio: promedio de espera total de la interseccion
-                         por paso (segundos)
-        throughput:      autos que cruzaron por hora real
+    Cada escenario usa su propio archivo de configuracion SUMO.
     """
 
     def __init__(self, sim, env_semaforo, env_vehiculo, episodios: int = 5):
@@ -39,6 +37,7 @@ class Evaluador:
         resultados = []
         for nombre, escenario in ESCENARIOS.items():
             print(f"\nEvaluando: {escenario.nombre}...")
+            print(f"  Config: {escenario.config_sumo}")
             metricas = self._correr_escenario(escenario)
             metricas["escenario"] = nombre
             metricas["nombre"]    = escenario.nombre
@@ -82,11 +81,19 @@ class Evaluador:
         }
 
     def _correr_episodio(self, escenario, modelo_s, modelo_v):
-        obs_s, _ = self.env_semaforo.reset()
-        obs_v, _ = self.env_vehiculo.reset()
+        # --- CLAVE: recargar SUMO con el config de ESTE escenario ---
+        self.sim.resetear(escenario.config_sumo)
 
-        suma_espera   = 0.0   # acumula espera_total de cada paso
-        throughput    = 0     # acumula autos que llegaron (total del episodio)
+        obs_s = self.env_semaforo._get_obs()
+        obs_v = self.env_vehiculo._get_obs()
+
+        # Reiniciar contadores internos de los entornos sin re-resetear SUMO
+        self.env_semaforo._pasos          = 0
+        self.env_semaforo._tiempo_en_fase = 0
+        self.env_vehiculo._pasos          = 0
+
+        suma_espera   = 0.0
+        throughput    = 0
         velocidades   = []
         frenadas      = 0
         vel_anterior  = 0
@@ -119,14 +126,7 @@ class Evaluador:
             if done_s or done_v:
                 break
 
-        # --- ESPERA PROMEDIO POR PASO ---
-        # suma_espera es la espera total de la interseccion sumada en cada paso.
-        # Dividimos entre los pasos para obtener la espera promedio por paso.
         espera_promedio = suma_espera / max(pasos_reales, 1)
-
-        # --- THROUGHPUT POR HORA ---
-        # throughput es el total de autos que cruzaron en todo el episodio.
-        # Lo dividimos entre las horas simuladas reales del episodio.
         horas_reales = max(pasos_reales / 3600.0, 0.01)
         throughput_por_hora = throughput / horas_reales
 
