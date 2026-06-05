@@ -65,33 +65,32 @@ def dashboard():
 
 
 def demo():
-    """Demo con SUMO visual — requiere SUMO instalado."""
+    """Demo con SUMO visual — solo semaforo (vehiculos aun no entrenados)."""
     from simulacion.trafico_api import SimulacionTrafico
     from entornos.entorno_semaforo import EntornoSemaforo
-    from entornos.entorno_vehiculo import EntornoVehiculo
     from stable_baselines3 import PPO
 
     sim = SimulacionTrafico(gui=True)
     sim.iniciar()
     env_s = EntornoSemaforo(sim)
-    env_v = EntornoVehiculo(sim)
 
     modelo_s = PPO.load("modelos/semaforo_final", env=env_s)
-    modelo_v = PPO.load("modelos/vehiculo_final", env=env_v)
 
     obs_s, _ = env_s.reset()
-    obs_v, _ = env_v.reset()
 
-    print("Corriendo demo visual... (cierra la ventana de SUMO para terminar)")
+    print("Corriendo demo visual del semaforo IA...")
+    print("(cierra la ventana de SUMO para terminar)")
     done = False
+    pasos = 0
     while not done:
         accion_s, _ = modelo_s.predict(obs_s, deterministic=True)
-        accion_v, _ = modelo_v.predict(obs_v, deterministic=True)
-        obs_s, _, done_s, _, _ = env_s.step(accion_s)
-        obs_v, _, done_v, _, _ = env_v.step(accion_v)
-        done = done_s or done_v
+        obs_s, _, done, _, info = env_s.step(int(accion_s))
+        pasos += 1
+        if pasos % 500 == 0:
+            print(f"Paso {pasos} | Fase verde: {info['fase_verde']}")
 
     sim.cerrar()
+    print(f"\nDemo terminado tras {pasos} pasos.")
 
 
 if __name__ == "__main__":
