@@ -102,8 +102,8 @@ class Evaluador:
             else:
                 accion_v = 1
 
-            obs_s, _, done_s, _, _ = self.env_semaforo.step(accion_s)
-            obs_v, _, done_v, _, _ = self.env_vehiculo.step(accion_v)
+            obs_s, _, done_s, _, _ = self.env_semaforo.step(int(accion_s))
+            obs_v, _, done_v, _, _ = self.env_vehiculo.step(int(accion_v))
 
             metricas = self.sim.get_metricas_globales()
             suma_espera  += metricas["espera_total"]
