@@ -39,9 +39,7 @@ Measured by average waiting time at the intersection, compared against a traditi
 
 | Resource | Description |
 |----------|-------------|
-| 📊 [Interactive dashboard](https://renecano.github.io/UrbanMindX/) | Results and learning curves visualization *(GitHub Pages)* |
-| 📄 [Poster](deliverables/UrbanMindX_Poster.pptx) | Scientific poster presented at the Expo |
-| 📝 [Paper](deliverables/) | APA-formatted document with the full methodology |
+| 📊 [Interactive dashboard](https://urbanmindx.netlify.app/) | Results and learning curves visualization |
 
 ---
 
