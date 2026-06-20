@@ -1,0 +1,1197 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark" data-accent="green">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UrbanMind X — Panel de Control</title>
+<script>
+  /* El navegador restaura el scroll al refrescar; eso rompía la intro.
+     Lo desactivamos lo antes posible para que la secuencia cinematográfica
+     siempre arranque desde arriba, en cada carga. */
+  if('scrollRestoration' in history){ history.scrollRestoration='manual'; }
+  window.scrollTo(0,0);
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Saira:wght@200;300;400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ── ACENTOS (independientes del tema) ── */
+:root{ --acc-bright:#1FE39B; --acc-solid:#00B873; --acc-rgb:31,227,155; }
+[data-accent="cyan"]{ --acc-bright:#34E6FF; --acc-solid:#0AA6CE; --acc-rgb:52,230,255; }
+
+/* ── TEMA OSCURO (default) ── */
+:root{
+  --bg:#04060A; --bg-2:#070A0F; --surface:#0B0F15; --surface-2:#0E141B;
+  --ink:#EAF1F8; --ink-soft:#AAB4C2; --muted:#5E6979; --faint:#3A434F;
+  --line:rgba(255,255,255,.075); --line-soft:rgba(255,255,255,.04); --line-hover:rgba(255,255,255,.2);
+  --baseline:#6B7686; --semaforo:#F2A33C; --vehiculo:#4D9BFF; --danger:#FF5B47;
+  --acc-text:var(--acc-bright); --acc-line:var(--acc-bright);
+  --glow-text:0 0 30px rgba(var(--acc-rgb),.45);
+  --glow-soft:0 0 24px rgba(var(--acc-rgb),.32);
+  --legible:0 2px 28px rgba(0,0,0,.85), 0 0 72px rgba(0,0,0,.6);
+  --tip-bg:rgba(14,20,27,.96);
+  --card-bg:linear-gradient(165deg,rgba(11,15,21,.86),rgba(7,10,15,.92));
+  --r:14px; --r-sm:9px;
+}
+/* ── TEMA CLARO ── */
+[data-theme="light"]{
+  --bg:#F7F7F4; --bg-2:#FFFFFF; --surface:#FFFFFF; --surface-2:#FCFCFB;
+  --ink:#14161A; --ink-soft:#3A3F47; --muted:#7A828D; --faint:#A4ABB5;
+  --line:#E7E7E1; --line-soft:#F0F0EC; --line-hover:#CFCFC8;
+  --acc-text:var(--acc-solid); --acc-line:var(--acc-solid);
+  --glow-text:none; --glow-soft:none; --legible:none;
+  --tip-bg:rgba(20,22,26,.95);
+  --card-bg:linear-gradient(165deg,#FFFFFF,#FCFCFB);
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);color:var(--ink);
+  font-family:'Saira',system-ui,sans-serif;-webkit-font-smoothing:antialiased;
+  line-height:1.5;overflow-x:hidden;position:relative;
+  transition:background .5s ease,color .5s ease;
+}
+/* glows ambientales (animados) */
+body::before{
+  content:"";position:fixed;inset:-20%;z-index:0;pointer-events:none;transition:opacity .5s ease;
+  background:
+    radial-gradient(700px 520px at 78% 8%,rgba(var(--acc-rgb),.09),transparent 60%),
+    radial-gradient(620px 460px at 14% 78%,rgba(77,155,255,.06),transparent 60%);
+  animation:driftGlow 22s ease-in-out infinite alternate;
+}
+@keyframes driftGlow{from{transform:translate3d(0,0,0)}to{transform:translate3d(-3%,2%,0)}}
+[data-theme="light"] body::before{opacity:.5}
+
+/* lienzo 3D y velo de legibilidad */
+#bg3d{position:fixed;inset:0;z-index:0;pointer-events:none;display:block;transition:opacity .6s ease}
+[data-theme="light"] #bg3d{opacity:.32}
+.veil{position:fixed;inset:0;z-index:1;pointer-events:none;background:linear-gradient(180deg,
+  color-mix(in srgb,var(--bg) 72%,transparent) 0%,
+  color-mix(in srgb,var(--bg) 34%,transparent) 13%,
+  color-mix(in srgb,var(--bg) 16%,transparent) 40%,
+  color-mix(in srgb,var(--bg) 16%,transparent) 64%,
+  color-mix(in srgb,var(--bg) 50%,transparent) 100%)}
+
+.tabnum{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+.wrap{max-width:1280px;margin:0 auto;padding:0 36px;position:relative;z-index:2}
+
+/* ── TOPBAR ── */
+.topbar{border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--bg) 68%,transparent);backdrop-filter:saturate(150%) blur(16px);position:sticky;top:0;z-index:50}
+.topbar-inner{display:flex;align-items:center;justify-content:space-between;height:66px;gap:18px}
+.brand{display:flex;align-items:center;gap:13px}
+.brand-mark{width:32px;height:32px;border-radius:7px;background:linear-gradient(150deg,var(--surface-2),var(--surface));position:relative;flex:none;border:1px solid var(--line);box-shadow:inset 0 0 12px rgba(var(--acc-rgb),.14)}
+.brand-mark::before,.brand-mark::after{content:"";position:absolute;left:50%;transform:translateX(-50%);width:6px;height:6px;border-radius:50%}
+.brand-mark::before{top:6px;background:var(--semaforo);box-shadow:0 0 9px var(--semaforo)}
+.brand-mark::after{bottom:6px;background:var(--acc-bright);box-shadow:0 0 10px var(--acc-bright)}
+.brand-name{font-family:'Saira';font-weight:800;letter-spacing:.16em;font-size:16px;text-transform:uppercase}
+.brand-name span{color:var(--acc-text);text-shadow:var(--glow-soft)}
+.topbar-right{display:flex;align-items:center;gap:22px}
+.topbar-meta{font-size:12px;color:var(--muted);font-weight:500;display:flex;align-items:center;gap:16px}
+.topbar-meta .stat{display:flex;align-items:center;gap:7px;font-family:'IBM Plex Mono';letter-spacing:.02em}
+.topbar-meta .led{width:7px;height:7px;border-radius:50%;background:var(--acc-bright);box-shadow:0 0 9px var(--acc-bright);animation:pulse 2.2s ease-in-out infinite}
+.topbar-meta b{color:var(--ink-soft);font-weight:600}
+.controls{display:flex;align-items:center;gap:12px}
+.swatches{display:flex;gap:6px}
+.sw{width:16px;height:16px;border-radius:5px;cursor:pointer;border:2px solid transparent;outline:1px solid var(--line);transition:transform .15s,border-color .15s}
+.sw.green{background:#1FE39B}.sw.cyan{background:#34E6FF}
+.sw:hover{transform:scale(1.12)}
+.sw.active{border-color:var(--ink);outline-color:transparent}
+.ctrl{display:inline-flex;align-items:center;gap:6px;font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.08em;color:var(--muted);border:1px solid var(--line);border-radius:8px;padding:7px 11px;cursor:pointer;background:transparent;text-transform:uppercase;transition:border-color .2s,color .2s}
+.ctrl:hover{color:var(--ink-soft);border-color:var(--line-hover)}
+@media(max-width:880px){.topbar-meta .stat:not(:first-child),.topbar-meta .sep{display:none}}
+@media(max-width:620px){.topbar-meta{display:none}}
+
+/* ── HERO ── */
+.hero{padding:84px 0 48px;position:relative;perspective:1400px}
+.hero-inner{position:relative;z-index:2;display:grid;grid-template-columns:1.25fr .85fr;gap:52px;align-items:center;will-change:transform}
+.eyebrow{display:inline-flex;align-items:center;gap:9px;font-family:'IBM Plex Mono';font-size:11.5px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--acc-text);background:color-mix(in srgb,var(--bg) 55%,transparent);border:1px solid rgba(var(--acc-rgb),.28);padding:7px 14px;border-radius:100px;margin-bottom:26px;backdrop-filter:blur(4px)}
+.eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--acc-bright);box-shadow:0 0 8px var(--acc-bright);animation:pulse 2.4s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.7)}}
+.hero h1{font-family:'Saira';font-weight:800;letter-spacing:-.025em;font-size:clamp(40px,5.4vw,74px);line-height:1.0;max-width:14ch;text-shadow:var(--legible)}
+.hero h1 em{font-style:normal;color:var(--acc-text);text-shadow:var(--glow-text)}
+.hero-sub{margin-top:24px;font-size:17.5px;font-weight:300;color:var(--ink-soft);max-width:52ch;line-height:1.6;text-shadow:var(--legible)}
+.hero-sub b{color:var(--ink);font-weight:600}
+.hero-sub .hl{color:var(--acc-text);font-weight:600}
+
+.gauge-wrap{display:flex;justify-content:center;align-items:center}
+.gauge{position:relative;width:316px;height:316px;animation:floaty 6.5s ease-in-out infinite}
+@keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+.gauge svg{width:100%;height:100%;transform:rotate(-90deg);filter:drop-shadow(0 18px 50px rgba(0,0,0,.5))}
+.gauge-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.gauge-num{font-family:'Saira';font-weight:800;letter-spacing:-.04em;font-size:70px;line-height:1;color:var(--acc-text);text-shadow:var(--glow-text)}
+.gauge-num small{font-size:30px;font-weight:600;opacity:.85}
+.gauge-cap{font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:500;margin-top:12px;max-width:18ch}
+.gauge-base{font-family:'IBM Plex Mono';font-size:12px;color:var(--ink-soft);margin-top:16px;font-variant-numeric:tabular-nums;border-top:1px solid var(--line);padding-top:12px}
+.gauge-base b{color:var(--acc-text);font-weight:600}
+
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:8px;perspective:1200px}
+.metric{background:var(--card-bg);border:1px solid var(--line);border-radius:var(--r);padding:22px 22px 20px;position:relative;overflow:hidden;backdrop-filter:blur(6px);transform-style:preserve-3d}
+.metric::after{content:"";position:absolute;left:0;top:0;bottom:0;width:2px}
+.metric.m-hero::after{background:var(--acc-bright);box-shadow:0 0 16px var(--acc-bright)}
+.metric.m-blue::after{background:var(--vehiculo)}.metric.m-amber::after{background:var(--semaforo)}.metric.m-ink::after{background:var(--ink-soft)}
+.metric:hover{border-color:var(--line-hover)}
+.metric-label{font-family:'IBM Plex Mono';font-size:10.5px;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:.1em}
+.metric-value{font-family:'Saira';font-weight:700;letter-spacing:-.02em;font-size:44px;line-height:1;margin-top:14px}
+.metric-value.green{color:var(--acc-text);text-shadow:var(--glow-soft)}
+.metric-foot{margin-top:11px;font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:7px;font-weight:300}
+.chip{font-family:'IBM Plex Mono';font-size:10.5px;font-weight:600;padding:3px 8px;border-radius:5px;letter-spacing:.02em}
+.chip.down{background:rgba(var(--acc-rgb),.12);color:var(--acc-text)}.chip.up{background:rgba(77,155,255,.14);color:var(--vehiculo)}
+
+/* ── SECCIONES ── */
+.section{padding:54px 0;position:relative;perspective:1400px}
+.section-head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:28px;gap:24px}
+.section-title{font-family:'Saira';font-weight:700;letter-spacing:-.01em;font-size:27px;text-shadow:var(--legible)}
+.section-desc{font-size:14.5px;font-weight:300;color:var(--ink-soft);max-width:56ch;margin-top:7px;line-height:1.55;text-shadow:var(--legible)}
+.section-tag{font-size:11px;font-weight:500;color:var(--muted);font-family:'IBM Plex Mono';white-space:nowrap;letter-spacing:.08em;text-transform:uppercase;border:1px solid var(--line);padding:6px 11px;border-radius:6px;background:color-mix(in srgb,var(--bg) 50%,transparent)}
+.card{background:var(--card-bg);border:1px solid var(--line);border-radius:var(--r);padding:30px 32px;position:relative;overflow:hidden;backdrop-filter:blur(6px);transform-style:preserve-3d}
+.card-lg{padding:34px 36px 28px}
+.card::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.14),transparent)}
+[data-theme="light"] .card::before{display:none}
+
+.chart-host{position:relative;width:100%}
+.chart-host svg{display:block;width:100%;height:auto;overflow:visible}
+.gridline{stroke:var(--line-soft);stroke-width:1}
+.axis-label{fill:var(--muted);font-family:'IBM Plex Mono';font-size:11px;font-weight:400}
+.draw-line{fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.draw-line2{fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:2 5}
+.pt-sub2{font-family:'IBM Plex Mono';font-weight:600;font-size:12px;opacity:0;transition:opacity .5s ease}
+.leg-t{font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.02em}
+.chart-legend{transition:opacity .6s ease .4s}
+.flow-line{fill:none;stroke-width:3.4;stroke-linecap:round;opacity:0;animation:flowDash 2.4s linear infinite;pointer-events:none}
+.flow-line.on{opacity:.6}
+@keyframes flowDash{to{stroke-dashoffset:-190}}
+.comet{pointer-events:none}
+.dot-outer,.dot-core{transition:r .4s cubic-bezier(.16,1,.3,1)}
+.pt-label{font-family:'Saira';font-weight:700;letter-spacing:-.01em;opacity:0;transition:opacity .5s ease}
+.pt-sub{font-family:'IBM Plex Mono';font-weight:400;font-size:11px;letter-spacing:.04em;fill:var(--muted);opacity:0;transition:opacity .5s ease}
+.delta-badge{font-family:'IBM Plex Mono';font-weight:600;font-size:13px;opacity:0;transition:opacity .5s ease}
+
+.tooltip{position:absolute;pointer-events:none;background:var(--tip-bg);border:1px solid var(--line);color:#fff;border-radius:9px;padding:10px 13px;font-size:13px;opacity:0;transform:translate(-50%,-118%);transition:opacity .15s ease;white-space:nowrap;box-shadow:0 10px 34px rgba(0,0,0,.5);z-index:5;backdrop-filter:blur(8px)}
+.tooltip .tt-name{font-family:'IBM Plex Mono';font-weight:400;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px;color:#9aa6b4}
+.tooltip .tt-val{font-family:'Saira';font-weight:700;font-size:18px}
+.tooltip .tt-sub2{font-family:'IBM Plex Mono';font-size:11px;color:var(--vehiculo);margin-top:5px;border-top:1px solid var(--line);padding-top:5px}
+.tooltip::after{content:"";position:absolute;left:var(--arrow-x,50%);width:10px;height:10px;background:var(--tip-bg);transform:translateX(-50%) rotate(45deg)}
+.tooltip:not(.tip-below)::after{bottom:-5px;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+.tooltip.tip-below::after{top:-5px;border-left:1px solid var(--line);border-top:1px solid var(--line)}
+.hover-guide{stroke:var(--ink-soft);stroke-width:1;stroke-dasharray:4 4;opacity:0;transition:opacity .15s}
+
+.cols-2{display:grid;grid-template-columns:1.15fr .85fr;gap:18px;perspective:1400px}
+.cols-3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;perspective:1400px}
+.callout{margin-top:26px;background:linear-gradient(135deg,rgba(var(--acc-rgb),.1),rgba(var(--acc-rgb),.02));border:1px solid rgba(var(--acc-rgb),.24);border-radius:var(--r-sm);padding:18px 20px;display:flex;gap:14px;align-items:flex-start}
+.callout-icon{width:32px;height:32px;border-radius:8px;background:rgba(var(--acc-rgb),.14);border:1px solid rgba(var(--acc-rgb),.32);flex:none;display:flex;align-items:center;justify-content:center;color:var(--acc-text);font-weight:700;font-family:'Saira';box-shadow:var(--glow-soft)}
+.callout-text{font-size:13.5px;font-weight:300;color:var(--ink-soft);line-height:1.6}
+.callout-text b{color:var(--ink);font-weight:600}
+
+.synergy-title{font-family:'Saira';font-weight:700;font-size:20px;letter-spacing:-.01em;margin-bottom:14px}
+.synergy-p{font-size:14px;font-weight:300;color:var(--ink-soft);line-height:1.65}
+
+.rcard-head{font-family:'IBM Plex Mono';font-size:11px;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:.08em}
+.rcard-num{font-family:'Saira';font-weight:700;font-size:42px;letter-spacing:-.02em;margin-top:10px;color:var(--acc-text);text-shadow:var(--glow-soft)}
+.rcard-num small{font-size:22px;opacity:.85}
+.rcard-cap{font-size:13px;font-weight:300;color:var(--muted);margin-top:3px}
+.spark{width:100%;height:54px;margin-top:16px;overflow:visible}
+.rcard-foot{display:flex;justify-content:space-between;font-size:13px;margin-top:14px;border-top:1px solid var(--line-soft);padding-top:13px}
+.rcard-foot .k{color:var(--muted);font-weight:300}
+.rcard-foot .v{font-weight:500;font-variant-numeric:tabular-nums;font-family:'IBM Plex Mono';font-size:12.5px}
+
+.table-wrap{overflow:hidden;border-radius:var(--r);border:1px solid var(--line);backdrop-filter:blur(6px)}
+table{width:100%;border-collapse:collapse;background:color-mix(in srgb,var(--surface) 88%,transparent)}
+thead th{text-align:right;font-family:'IBM Plex Mono';font-size:10.5px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:16px 20px;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--bg-2) 80%,transparent)}
+thead th:first-child{text-align:left}
+tbody td{padding:15px 20px;text-align:right;font-size:14px;border-bottom:1px solid var(--line-soft);font-variant-numeric:tabular-nums;color:var(--ink-soft);font-weight:300}
+tbody td:first-child{text-align:left;font-weight:500;color:var(--ink)}
+tbody tr:last-child td{border-bottom:none}
+tbody tr.row-hero{background:rgba(var(--acc-rgb),.1)}
+tbody tr.row-hero td{color:var(--acc-text)}
+tbody tr.row-hero td:first-child{color:var(--acc-text);font-weight:700;box-shadow:inset 3px 0 0 var(--acc-line)}
+tbody tr.row-hero .mejora-pill{background:rgba(var(--acc-rgb),.18)}
+tbody tr{transition:background .2s}
+tbody tr:hover{background:rgba(127,127,127,.08)}tbody tr.row-hero:hover{background:rgba(var(--acc-rgb),.15)}
+.tag-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:10px;vertical-align:middle}
+.mejora-pill{display:inline-block;font-family:'IBM Plex Mono';font-weight:600;font-size:12.5px;padding:3px 10px;border-radius:6px;background:rgba(var(--acc-rgb),.12);color:var(--acc-text)}
+.mejora-pill.neg{background:rgba(127,127,127,.08);color:var(--muted)}
+
+.footer{border-top:1px solid var(--line);padding:36px 0 64px;margin-top:26px;position:relative;z-index:2}
+.footer-inner{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px}
+.footer-note{font-size:13px;font-weight:300;color:var(--muted)}.footer-note b{color:var(--ink-soft);font-weight:500}
+.footer-tags{display:flex;gap:9px;flex-wrap:wrap}
+.ftag{font-size:11px;font-family:'IBM Plex Mono';color:var(--muted);border:1px solid var(--line);border-radius:6px;padding:5px 11px;letter-spacing:.02em}
+
+/* ── REVEALS 3D (props individuales para no chocar con el tilt) ── */
+.reveal{opacity:0;translate:0 32px;scale:.965;rotate:x 8deg;transform-origin:50% 100%;
+  transition:opacity .85s ease, translate .9s cubic-bezier(.16,1,.3,1), scale .9s cubic-bezier(.16,1,.3,1), rotate .9s cubic-bezier(.16,1,.3,1)}
+.reveal.in{opacity:1;translate:0 0;scale:1;rotate:x 0deg}
+/* el tilt usa transform; transición rápida y suave */
+.metric,.card{transition:opacity .85s ease, translate .9s cubic-bezier(.16,1,.3,1), scale .9s cubic-bezier(.16,1,.3,1), rotate .9s cubic-bezier(.16,1,.3,1), transform .3s cubic-bezier(.16,1,.3,1), box-shadow .3s ease, border-color .35s ease}
+
+@media(prefers-reduced-motion:reduce){
+  .gauge,body::before{animation:none}
+  .flow-line{animation:none;opacity:.4}
+}
+/* ── Proceso experimental del semáforo ── */
+.mexp-list{display:flex;flex-direction:column;gap:18px;margin-top:4px}
+.mexp-row{display:grid;grid-template-columns:240px 1fr;gap:22px;align-items:center}
+.mexp-meta{text-align:right}
+.mexp-name{font-family:'Saira';font-weight:700;font-size:15px;letter-spacing:.01em}
+.mexp-cfg{font-size:12px;color:var(--muted);margin-top:2px;font-family:'IBM Plex Mono'}
+.mexp-track{position:relative;height:46px;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.mexp-fill{position:absolute;left:0;top:0;bottom:0;width:0;border-radius:10px 0 0 10px;transition:width 1.2s cubic-bezier(.16,1,.3,1);display:flex;align-items:center;justify-content:flex-end;padding-right:14px;background:linear-gradient(90deg,var(--bar,var(--acc-line)),color-mix(in srgb,var(--bar,var(--acc-line)) 72%,#fff));box-shadow:0 0 22px -3px var(--bar,var(--acc-line))}
+.mexp-fill .mexp-val{font-family:'Saira';font-weight:800;font-size:15px;color:#fff;opacity:0;transition:opacity .4s ease .8s;white-space:nowrap;text-shadow:0 1px 6px rgba(0,0,0,.5)}
+.mexp-status{position:absolute;top:50%;transform:translateY(-50%);font-family:'IBM Plex Mono';font-size:11.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;opacity:0;transition:opacity .5s ease 1s;white-space:nowrap}
+.mexp-row[data-win="1"] .mexp-track{border-color:rgba(var(--acc-rgb),.5);box-shadow:0 0 24px rgba(var(--acc-rgb),.18)}
+.mexp-verdict{font-size:12.5px;color:var(--muted);margin-top:7px;line-height:1.45}
+.mexp-verdict b{color:var(--ink-soft);font-weight:600}
+.mexp-tag{display:inline-block;font-family:'IBM Plex Mono';font-size:10.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:3px 9px;border-radius:6px;margin-bottom:6px}
+.mexp-tag.win{background:rgba(var(--acc-rgb),.14);color:var(--acc-text)}
+.mexp-tag.kill{background:rgba(255,91,71,.12);color:var(--danger)}
+@media(max-width:760px){.mexp-row{grid-template-columns:1fr;gap:8px}.mexp-meta{text-align:left}}
+@media(max-width:1000px){.hero-inner{grid-template-columns:1fr;gap:36px}.gauge-wrap{order:-1}.metrics{grid-template-columns:repeat(2,1fr)}.cols-2{grid-template-columns:1fr}}
+@media(max-width:620px){.wrap{padding:0 20px}.metrics{grid-template-columns:1fr}.cols-3{grid-template-columns:1fr}.hero{padding:60px 0 36px}}
+/* ── Bloque de video ── */
+.video-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;perspective:1400px}
+.video-card{background:var(--card-bg);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;position:relative;backdrop-filter:blur(6px);transform-style:preserve-3d}
+.video-card::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.14),transparent);z-index:1;pointer-events:none}
+[data-theme="light"] .video-card::before{display:none}
+.video-label{padding:18px 22px 14px;display:flex;align-items:center;gap:12px}
+.video-label-tag{font-family:'IBM Plex Mono';font-size:10.5px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;padding:4px 10px;border-radius:6px}
+.video-label-tag.tradicional{background:rgba(107,118,134,.14);color:var(--baseline)}
+.video-label-tag.urbanmind{background:rgba(var(--acc-rgb),.12);color:var(--acc-text);box-shadow:0 0 14px rgba(var(--acc-rgb),.1)}
+.video-label-title{font-family:'Saira';font-weight:700;font-size:15px;color:var(--ink)}
+.video-label-sub{font-size:12px;font-weight:300;color:var(--muted);margin-top:2px}
+.video-placeholder{position:relative;width:100%;aspect-ratio:16/9;background:var(--surface-2);border-top:1px solid var(--line);overflow:hidden;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px}
+.video-placeholder video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none}
+.video-placeholder video.loaded{display:block}
+.video-placeholder .vp-icon{width:56px;height:56px;border-radius:50%;border:2px solid var(--line);display:flex;align-items:center;justify-content:center;transition:border-color .2s,background .2s}
+.video-card.has-video .vp-icon{display:none}
+.video-placeholder .vp-icon svg{margin-left:3px}
+.video-placeholder .vp-hint{font-family:'IBM Plex Mono';font-size:11px;color:var(--muted);letter-spacing:.06em;text-align:center;padding:0 24px}
+.video-card.has-video .vp-hint{display:none}
+.video-card.tradicional-card .video-placeholder .vp-icon{color:var(--baseline);border-color:rgba(107,118,134,.28)}
+.video-card.urbanmind-card .video-placeholder .vp-icon{color:var(--acc-text);border-color:rgba(var(--acc-rgb),.35);box-shadow:0 0 22px rgba(var(--acc-rgb),.1)}
+.video-card.urbanmind-card .video-placeholder{background:color-mix(in srgb,var(--surface-2) 94%,rgba(var(--acc-rgb),.1))}
+.video-footer{padding:14px 22px;font-size:12.5px;color:var(--muted);font-weight:300;border-top:1px solid var(--line-soft);font-family:'IBM Plex Mono';letter-spacing:.02em}
+@media(max-width:760px){.video-grid{grid-template-columns:1fr}}
+/* ── Curvas de aprendizaje ── */
+.lc-band{stroke:none}
+.lc-line{fill:none;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+.lc-axis{fill:var(--muted);font-family:'IBM Plex Mono';font-size:10.5px}
+.lc-marker{transition:r .4s cubic-bezier(.16,1,.3,1)}
+.lc-note{font-size:12px;color:var(--muted);margin-top:12px;line-height:1.5;display:flex;align-items:flex-start;gap:8px}
+.lc-note .lc-badge{font-family:'IBM Plex Mono';font-size:10px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:2px 7px;border-radius:5px;background:rgba(255,255,255,.06);color:var(--ink-soft);border:1px solid var(--line);white-space:nowrap;flex:none;margin-top:1px}
+[data-theme="light"] .lc-note .lc-badge{background:#F0F0EC}
+.lc-caption{font-size:12.5px;color:var(--muted);margin-top:6px}
+.lc-caption b{color:var(--ink-soft);font-weight:600}
+:root{--map-filter:invert(.92) hue-rotate(180deg) brightness(.96) contrast(.9) saturate(.85)}
+[data-theme="light"]{--map-filter:none}
+.map-wrap{position:relative;width:100%;height:440px;background:var(--surface-2)}
+.map-frame{position:absolute;inset:0;width:100%;height:100%;border:0;filter:var(--map-filter)}
+.map-cap{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:18px 24px;border-top:1px solid var(--line);flex-wrap:wrap}
+.map-cap b{font-family:'Saira';font-weight:700;font-size:15.5px;color:var(--ink)}
+.map-sub{font-size:12.5px;color:var(--muted);font-family:'IBM Plex Mono';margin-top:3px}
+.map-link{font-family:'IBM Plex Mono';font-size:12px;color:var(--acc-text);text-decoration:none;border:1px solid rgba(var(--acc-rgb),.32);padding:9px 14px;border-radius:9px;white-space:nowrap;transition:border-color .2s,background .2s}
+.map-link:hover{background:rgba(var(--acc-rgb),.1);border-color:rgba(var(--acc-rgb),.5)}
+@media(max-width:620px){.map-wrap{height:320px}}
+/* ── Intro cinematográfica ── */
+.cine-bar{position:fixed;left:0;right:0;height:9vh;background:#000;z-index:60;pointer-events:none;transition:transform 1.1s cubic-bezier(.7,0,.2,1)}
+.cine-bar.top{top:0}.cine-bar.bottom{bottom:0}
+body.intro-done .cine-bar.top{transform:translateY(-100%)}
+body.intro-done .cine-bar.bottom{transform:translateY(100%)}
+.cine-fade{position:fixed;inset:0;z-index:70;background:#000;pointer-events:none;animation:cineFadeOut 1.3s ease .1s forwards}
+@keyframes cineFadeOut{0%{opacity:1}100%{opacity:0;visibility:hidden}}
+@media(prefers-reduced-motion:reduce){.cine-bar,.cine-fade{display:none}}
+/* ── Placa de título (estilo película) ── */
+.title-card{position:fixed;inset:0;z-index:58;display:flex;align-items:center;justify-content:center;pointer-events:none;text-align:center;padding:0 24px}
+.title-card.gone{opacity:0;transform:scale(1.09);visibility:hidden;transition:opacity .7s ease,transform 1.1s cubic-bezier(.7,0,.2,1),visibility 0s linear .75s}
+@keyframes tcShow{to{opacity:1}}
+.title-card::before{content:"";position:absolute;width:min(940px,94vw);height:min(940px,94vw);border-radius:50%;background:radial-gradient(circle,rgba(var(--acc-rgb),.15),transparent 62%);filter:blur(24px);z-index:-1;opacity:0;animation:tcShow 1.5s ease .55s forwards}
+.tc-inner{position:relative;padding:34px clamp(22px,6vw,64px)}
+.tc-eyebrow{font-family:'IBM Plex Mono';font-size:clamp(10px,1.4vw,13px);letter-spacing:.42em;text-transform:uppercase;color:var(--acc-text);margin-bottom:22px;text-indent:.42em;opacity:0;animation:tcUp .9s cubic-bezier(.16,1,.3,1) .5s forwards}
+.tc-title{font-family:'Saira';font-weight:900;font-size:clamp(46px,10vw,140px);line-height:.9;color:var(--ink);text-shadow:0 10px 60px rgba(0,0,0,.7);opacity:0;transition:opacity .25s ease}
+.tc-title span{display:inline-block}
+.tc-title.scrambling span{min-width:.6em;text-align:center}
+.tc-title.scrambling{text-shadow:2px 0 rgba(255,70,70,.55),-2px 0 rgba(70,200,255,.55),0 10px 50px rgba(0,0,0,.6);animation:tcGlitch .2s steps(2,end) infinite}
+@keyframes tcGlitch{0%,100%{transform:translateX(0)}50%{transform:translateX(-1.5px)}}
+.tc-title .tc-dot{color:var(--acc-text)}
+.tc-title .tc-x{color:var(--acc-text);text-shadow:0 0 46px rgba(var(--acc-rgb),.75),0 0 16px rgba(var(--acc-rgb),.9)}
+.tc-rule{width:0;height:2px;margin:28px auto 0;background:linear-gradient(90deg,transparent,var(--acc-line),transparent);box-shadow:0 0 16px rgba(var(--acc-rgb),.6);animation:tcRule 1s cubic-bezier(.16,1,.3,1) 1.05s forwards}
+.tc-tag{font-family:'Saira';font-weight:300;font-size:clamp(15px,2.4vw,24px);color:var(--ink-soft);margin-top:24px;opacity:0;animation:tcUp 1s cubic-bezier(.16,1,.3,1) 1.35s forwards}
+@keyframes tcTitle{to{opacity:1;letter-spacing:.04em;filter:blur(0);transform:translateY(0)}}
+@keyframes tcUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes tcRule{to{width:min(380px,72%)}}
+.tc-cnr{position:absolute;width:30px;height:30px;border:2px solid rgba(var(--acc-rgb),.55);opacity:0;animation:tcCnr .9s cubic-bezier(.16,1,.3,1) 1.0s forwards}
+.tc-cnr.tl{top:0;left:0;border-right:0;border-bottom:0}
+.tc-cnr.tr{top:0;right:0;border-left:0;border-bottom:0}
+.tc-cnr.bl{bottom:0;left:0;border-right:0;border-top:0}
+.tc-cnr.br{bottom:0;right:0;border-left:0;border-top:0}
+@keyframes tcCnr{from{opacity:0;transform:scale(1.5)}to{opacity:.55;transform:scale(1)}}
+@media(prefers-reduced-motion:reduce){.title-card{display:none}}
+</style>
+</head>
+<body>
+
+<canvas id="bg3d"></canvas>
+<div class="veil"></div>
+<div class="cine-fade"></div>
+<div class="cine-bar top"></div>
+<div class="cine-bar bottom"></div>
+<div class="title-card" id="titleCard">
+  <div class="tc-inner">
+    <span class="tc-cnr tl"></span><span class="tc-cnr tr"></span><span class="tc-cnr bl"></span><span class="tc-cnr br"></span>
+    <div class="tc-eyebrow">Reinforcement Learning · Toluca, MX</div>
+    <div class="tc-title" id="tcTitleText">UrbanMind<span class="tc-x">·</span><span class="tc-x">X</span></div>
+    <div class="tc-rule"></div>
+    <div class="tc-tag">Una ciudad que aprende a despejarse sola</div>
+  </div>
+</div>
+
+<header class="topbar"><div class="wrap topbar-inner">
+  <div class="brand"><div class="brand-mark"></div><div class="brand-name">UrbanMind<span>·X</span></div></div>
+  <div class="topbar-right">
+    <div class="topbar-meta">
+      <span class="stat"><span class="led"></span>SISTEMA ACTIVO</span>
+      <span class="sep">·</span>
+      <span class="stat">RL &middot; <b>PPO</b></span>
+      <span class="sep">·</span>
+      <span class="stat">TOLUCA, MX</span>
+    </div>
+    <div class="controls">
+      <div class="swatches" title="Color de acento">
+        <span class="sw green active" data-acc="green" title="Verde"></span>
+        <span class="sw cyan" data-acc="cyan" title="Cian"></span>
+      </div>
+      <button class="ctrl" id="themeBtn" title="Cambiar tema">&#9790; OSCURO</button>
+    </div>
+  </div>
+</div></header>
+
+<section class="hero" id="hero">
+  <div class="wrap">
+    <div class="hero-inner" id="heroInner">
+      <div>
+        <div class="eyebrow reveal"><span class="dot"></span>EVAL · 5 EPISODIOS / ESCENARIO</div>
+        <h1 class="reveal">Una ciudad que <em>aprende</em> a despejarse sola.</h1>
+        <p class="hero-sub reveal">Dos agentes de IA —un semáforo y los vehículos autónomos— se coordinan en una ciudad real —Toluca— y reducen el tiempo de espera <span class="hl">de 303 a 66 segundos</span>.</p>
+      </div>
+      <div class="gauge-wrap reveal">
+        <div class="gauge">
+          <svg viewBox="0 0 200 200">
+            <defs>
+              <linearGradient id="gaugeGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="var(--acc-bright)"/><stop offset="100%" stop-color="var(--acc-solid)"/></linearGradient>
+              <filter id="gGlow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="3.4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            </defs>
+            <circle cx="100" cy="100" r="94" fill="none" stroke="var(--acc-line)" stroke-width="1.4" stroke-dasharray="1 7" opacity=".3">
+              <animateTransform attributeName="transform" type="rotate" from="0 100 100" to="360 100 100" dur="44s" repeatCount="indefinite"/>
+            </circle>
+            <circle cx="100" cy="100" r="84" fill="none" stroke="var(--line)" stroke-width="12"/>
+            <circle id="gaugeArc" cx="100" cy="100" r="84" fill="none" stroke="url(#gaugeGrad)" stroke-width="12" stroke-linecap="round" filter="url(#gGlow)"/>
+          </svg>
+          <div class="gauge-center">
+            <div class="gauge-num tabnum"><span id="gaugeNum">0</span><small>%</small></div>
+            <div class="gauge-cap">reducción del tiempo de espera</div>
+            <div class="gauge-base">303 s &rarr; <b>66 s</b></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="metrics" style="margin-top:56px">
+      <div class="metric m-hero reveal"><div class="metric-label">Espera · sistema completo</div><div class="metric-value green tabnum"><span data-count="66" data-suffix=" s">0</span></div><div class="metric-foot"><span class="chip down">−237 s</span> vs. semáforo fijo</div></div>
+      <div class="metric m-blue reveal"><div class="metric-label">Velocidad promedio</div><div class="metric-value tabnum"><span data-count="8.0" data-suffix=" m/s">0</span></div><div class="metric-foot"><span class="chip up">+18%</span> de flujo más ágil</div></div>
+      <div class="metric m-amber reveal"><div class="metric-label">Throughput sostenido</div><div class="metric-value tabnum"><span data-count="1811" data-suffix="">0</span></div><div class="metric-foot">autos/hora con menos espera</div></div>
+      <div class="metric m-ink reveal"><div class="metric-label">Escenarios evaluados</div><div class="metric-value tabnum"><span data-count="6" data-suffix="">0</span></div><div class="metric-foot">normal · pico · desbalanceado</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="section"><div class="wrap">
+  <div class="section-head reveal">
+    <div><div class="section-title">La intersección real</div><div class="section-desc">El modelo en SUMO replica un cruce real de Toluca: el Blvd. José María Pino Suárez con la Av. Venustiano Carranza.</div></div>
+    <div class="section-tag">Toluca · C.P. 50130</div>
+  </div>
+  <div class="card no-tilt reveal" style="padding:0;overflow:hidden">
+    <div class="map-wrap">
+      <iframe class="map-frame" title="Mapa de la intersección Pino Suárez y Carranza" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen src="https://www.google.com/maps?q=Blvd.+Jos%C3%A9+Mar%C3%ADa+Pino+Su%C3%A1rez+y+Av.+Venustiano+Carranza%2C+Toluca+de+Lerdo&output=embed&z=17"></iframe>
+    </div>
+    <div class="map-cap">
+      <div><b>Blvd. José Ma. Pino Suárez × Av. Venustiano Carranza</b><div class="map-sub">Col. Universidad / Altamirano · Toluca de Lerdo, Edo. de México</div></div>
+      <a class="map-link" href="https://www.google.com/maps/search/?api=1&query=Blvd.%20Jos%C3%A9%20Mar%C3%ADa%20Pino%20Su%C3%A1rez%20y%20Av.%20Venustiano%20Carranza%2C%20Toluca" target="_blank" rel="noopener">Abrir en Google Maps ↗</a>
+    </div>
+  </div>
+</div></section>
+
+<!-- ══════════ SECCIÓN VIDEOS COMPARATIVOS ══════════ -->
+<section class="section" id="videos"><div class="wrap">
+  <div class="section-head reveal">
+    <div>
+      <div class="section-title">Comparativa en simulación</div>
+      <div class="section-desc">El mismo cruce, con el mismo volumen de tráfico: sistema de semáforo fijo frente a UrbanMind X con aprendizaje por refuerzo.</div>
+    </div>
+    <div class="section-tag">SUMO · visualización</div>
+  </div>
+  <div class="video-grid">
+
+    <!-- ── Video 1: Sistema Tradicional ── -->
+    <div class="card video-card tradicional-card reveal" id="videoCardTradicional">
+      <div class="video-label">
+        <span class="video-label-tag tradicional">Control</span>
+        <div>
+          <div class="video-label-title">Sistema Tradicional</div>
+          <div class="video-label-sub">Semáforo de tiempo fijo · ciclos estáticos</div>
+        </div>
+      </div>
+      <div class="video-placeholder" id="videoPlaceholderTradicional">
+        <!-- Reemplazar con: <video id="videoTradicional" src="TU_VIDEO_TRADICIONAL.mp4" controls preload="metadata"></video> -->
+        <video id="videoTradicional" controls preload="metadata"></video>
+        <div class="vp-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        </div>
+        <div class="vp-hint">Video pendiente<br>Sistema tradicional · semáforo fijo</div>
+      </div>
+      <div class="video-footer">Espera promedio: <span style="color:var(--baseline);font-weight:600">303 s</span> &nbsp;·&nbsp; Línea base del experimento</div>
+    </div>
+
+    <!-- ── Video 2: UrbanMind X ── -->
+    <div class="card video-card urbanmind-card reveal" id="videoCardUrbanmind">
+      <div class="video-label">
+        <span class="video-label-tag urbanmind">UrbanMind X</span>
+        <div>
+          <div class="video-label-title">Sistema Completo</div>
+          <div class="video-label-sub">PPO · semáforo inteligente + vehículos autónomos</div>
+        </div>
+      </div>
+      <div class="video-placeholder" id="videoPlaceholderUrbanmind">
+        <!-- Reemplazar con: <video id="videoUrbanmind" src="TU_VIDEO_URBANMIND.mp4" controls preload="metadata"></video> -->
+        <video id="videoUrbanmind" controls preload="metadata"></video>
+        <div class="vp-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        </div>
+        <div class="vp-hint">Video pendiente<br>UrbanMind X · −78.2% de espera</div>
+      </div>
+      <div class="video-footer">Espera promedio: <span style="color:var(--acc-text);font-weight:600;text-shadow:var(--glow-soft)">66 s</span> &nbsp;·&nbsp; <span style="color:var(--acc-text)">−78.2%</span> vs. sistema tradicional</div>
+    </div>
+
+  </div>
+</div></section>
+
+<section class="section"><div class="wrap"><div class="section-desc">Cada capa de inteligencia desploma la espera (línea verde), mientras el flujo de autos que cruzan se mantiene estable (línea azul).</div></div>
+    <div class="section-tag">espera (s) ↓ · autos/h →</div>
+  </div>
+  <div class="card card-lg reveal"><div class="chart-host" id="trajChart"></div></div>
+</div></section>
+
+<section class="section"><div class="wrap">
+  <div class="section-head reveal">
+    <div><div class="section-title">El aporte de cada agente</div><div class="section-desc">Cuánto reduce la espera cada componente por separado, y cuánto logran juntos.</div></div>
+    <div class="section-tag">% mejora vs. tradicional</div>
+  </div>
+  <div class="cols-2">
+    <div class="card card-lg reveal"><div class="chart-host" id="aporteChart"></div></div>
+    <div class="card card-lg reveal" style="display:flex;flex-direction:column;justify-content:center">
+      <div class="synergy-title">Más que la suma de sus partes</div>
+      <p class="synergy-p">El semáforo por sí solo reduce la espera un <b style="color:var(--semaforo)">36.5%</b>. Los vehículos autónomos solos, un <b style="color:var(--vehiculo)">46.6%</b>.</p>
+      <p class="synergy-p" style="margin-top:12px">Juntos alcanzan <b style="color:var(--acc-text)">78.2%</b> — por encima de cualquiera en solitario. No se suman: se potencian.</p>
+      <div class="callout"><div class="callout-icon">↗</div><div class="callout-text"><b>Sinergia.</b> Vehículos que anticipan el semáforo, frente a un semáforo que se adapta al flujo, producen una mejora combinada superior a la esperada.</div></div>
+    </div>
+  </div>
+</div></section>
+
+<section class="section"><div class="wrap">
+  <div class="section-head reveal">
+    <div><div class="section-title">Robustez ante distintas condiciones</div><div class="section-desc">El sistema completo mantiene su desempeño bajo alta densidad y tráfico desigual.</div></div>
+    <div class="section-tag">sistema completo</div>
+  </div>
+  <div class="cols-3" id="robustez"></div>
+</div></section>
+
+<section class="section"><div class="wrap">
+  <div class="section-head reveal">
+    <div><div class="section-title">Curvas de aprendizaje</div><div class="section-desc">Evolución de la recompensa durante el entrenamiento de cada agente con PPO.</div></div>
+    <div class="section-tag">recompensa vs. pasos</div>
+  </div>
+  <div class="cols-2">
+    <div class="card card-lg reveal">
+      <div style="font-family:'Saira';font-weight:700;font-size:16px;margin-bottom:4px">Semáforo Inteligente</div>
+      <div class="lc-caption">Fase de aprendizaje · <b>primeros 60k pasos</b> · recompensa normalizada</div>
+      <div class="chart-host" id="semCurve" style="margin-top:14px"></div>
+      <div class="lc-note"><span class="lc-badge">Convergió</span><span>La recompensa sube rápido en los primeros ~25k pasos y se estabiliza: el agente alcanza pronto su techo de aprendizaje.</span></div>
+    </div>
+    <div class="card card-lg reveal">
+      <div style="font-family:'Saira';font-weight:700;font-size:16px;margin-bottom:4px">Vehículos Autónomos</div>
+      <div class="lc-caption">Fase de aprendizaje · <b>primeros 60k pasos</b> · semilla fija (reproducible)</div>
+      <div class="chart-host" id="vehCurve" style="margin-top:14px"></div>
+      <div class="lc-note"><span class="lc-badge">Mejoró</span><span>La recompensa sube con fuerza al inicio y se estabiliza; el agente sigue refinando su conducción durante el resto del entrenamiento.</span></div>
+    </div>
+  </div>
+</div></section>
+
+<section class="section"><div class="wrap">
+  <div class="section-head reveal">
+    <div><div class="section-title">El proceso experimental del semáforo</div><div class="section-desc">Cuatro configuraciones probadas para maximizar el agente. El techo de un semáforo de dos fases resultó ser ~36%.</div></div>
+    <div class="section-tag">% mejora vs. tradicional</div>
+  </div>
+  <div class="card card-lg reveal"><div class="mexp-list" id="mexpList"></div></div>
+</div></section>
+
+<section class="section"><div class="wrap">
+  <div class="section-head reveal">
+    <div><div class="section-title">Resultados completos</div><div class="section-desc">Métricas medidas directamente en SUMO sobre la intersección Carranza · Pino Suárez.</div></div>
+    <div class="section-tag">comparativa.csv</div>
+  </div>
+  <div class="table-wrap reveal"><table>
+    <thead><tr><th>Escenario</th><th>Espera (s)</th><th>Throughput</th><th>Velocidad (m/s)</th><th>Frenadas</th><th>Mejora</th></tr></thead>
+    <tbody id="tbody"></tbody>
+  </table></div>
+</div></section>
+
+<footer class="footer"><div class="wrap footer-inner">
+  <div class="footer-note">UrbanMind X · Intersección <b>Venustiano Carranza & Blvr. José Ma. Pino Suárez</b>, Toluca</div>
+  <div class="footer-tags"><span class="ftag">SUMO + TraCI</span><span class="ftag">PPO · Stable-Baselines3</span><span class="ftag">Gymnasium</span><span class="ftag">RF learning</span></div>
+</div></footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const SVGNS="http://www.w3.org/2000/svg";
+const BASE=303.26;
+const mejora=e=>((BASE-e)/BASE*100);
+const C_BASE="#6B7686",C_SEM="#F2A33C",C_VEH="#4D9BFF",C_COMP="var(--acc-line)",C_BG="var(--bg)";
+const cssVar=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const accentHex=()=>cssVar('--acc-bright')||'#1FE39B';
+
+const data=[
+  {key:"tradicional",name:"Sistema Tradicional",espera:303.26,thr:1924,vel:6.78,fre:4.0,color:C_BASE},
+  {key:"semaforo",name:"Semáforo Inteligente",espera:192.61,thr:1887,vel:7.94,fre:7.0,color:C_SEM},
+  {key:"vehiculo",name:"Vehículos Autónomos",espera:161.94,thr:1911,vel:6.86,fre:1.0,color:C_VEH},
+  {key:"completo",name:"UrbanMind X Completo",espera:66.18,thr:1811,vel:8.03,fre:5.0,color:C_COMP,hero:true},
+  {key:"pico",name:"Hora Pico",espera:82.10,thr:2238,vel:8.03,fre:2.0,color:C_COMP},
+  {key:"desb",name:"Tráfico Desbalanceado",espera:78.42,thr:2242,vel:8.07,fre:2.6,color:C_COMP},
+];
+
+function smooth(pts){
+  if(pts.length<2)return"";
+  let d=`M ${pts[0].x} ${pts[0].y}`;
+  for(let i=0;i<pts.length-1;i++){
+    const p0=pts[i-1]||pts[i],p1=pts[i],p2=pts[i+1],p3=pts[i+2]||p2;
+    const c1x=p1.x+(p2.x-p0.x)/6,c1y=p1.y+(p2.y-p0.y)/6;
+    const c2x=p2.x-(p3.x-p1.x)/6,c2y=p2.y-(p3.y-p1.y)/6;
+    d+=` C ${c1x.toFixed(1)} ${c1y.toFixed(1)}, ${c2x.toFixed(1)} ${c2y.toFixed(1)}, ${p2.x} ${p2.y}`;
+  }
+  return d;
+}
+
+function buildChart(hostId,opts){
+  const host=document.getElementById(hostId);
+  const hasR=!!opts.points2;
+  const W=820,H=opts.h||360,padL=opts.padL??22,padR=opts.padR??(hasR?60:28),padT=opts.padT??54,padB=opts.padB??52;
+  const innerW=W-padL-padR,innerH=H-padT-padB;
+  const pts=opts.points,maxV=opts.maxV;
+  const xs=i=>padL+innerW*(i/(pts.length-1)),ys=v=>padT+innerH*(1-v/maxV);
+  const P=pts.map((p,i)=>({x:xs(i),y:ys(p.v),...p}));
+  const accent2=opts.accent2||C_VEH, maxV2=opts.maxV2||1, ys2=v=>padT+innerH*(1-v/maxV2);
+  const P2=hasR?opts.points2.map((p,i)=>({x:xs(i),y:ys2(p.v),...p})):[];
+  let grid="";const ticks=opts.ticks||4;
+  for(let t=0;t<=ticks;t++){const gy=padT+innerH*(t/ticks);const val=Math.round(maxV*(1-t/ticks));
+    grid+=`<line class="gridline" x1="${padL}" y1="${gy}" x2="${W-padR}" y2="${gy}"/><text class="axis-label" x="${padL-8}" y="${gy+4}" text-anchor="end">${val}</text>`;
+    if(hasR){const val2=Math.round(maxV2*(1-t/ticks));grid+=`<text class="axis-label" x="${W-padR+9}" y="${gy+4}" text-anchor="start" fill="${accent2}" opacity=".8">${val2.toLocaleString()}</text>`;}
+  }
+  const linePath=smooth(P);
+  const areaPath=linePath+` L ${P[P.length-1].x} ${padT+innerH} L ${P[0].x} ${padT+innerH} Z`;
+  const gradId=hostId+"Grad",accent=opts.accent;
+  const edgeAnchor=(i,n)=>i===0?'start':(i===n-1?'end':'middle');
+  let line2="",dots2="",labels2="",legend="";
+  if(hasR){
+    line2=`<path class="draw-line2" d="${smooth(P2)}" stroke="${accent2}" style="opacity:0;transition:opacity .9s ease .35s"/>`;
+    P2.forEach((p,i)=>{
+      dots2+=`<circle class="dot-outer" cx="${p.x}" cy="${p.y}" r="0" fill="${C_BG}" stroke="${accent2}" stroke-width="2.5" data-r="6.5" style="transition-delay:${1.0+i*.12}s"/>`;
+      dots2+=`<circle class="dot-core" cx="${p.x}" cy="${p.y}" r="0" fill="${accent2}" data-r="3" style="transition-delay:${1.05+i*.12}s"/>`;
+      labels2+=`<text class="pt-sub2" x="${p.x}" y="${p.y-12}" text-anchor="${edgeAnchor(i,P2.length)}" fill="${accent2}" style="transition-delay:${1.2+i*.12}s">${p.label2||p.label}</text>`;
+    });
+    legend=`<g class="chart-legend" opacity="0">
+      <line x1="226" y1="20" x2="248" y2="20" stroke="${accent}" stroke-width="3" stroke-linecap="round"/>
+      <text x="254" y="24" class="leg-t" fill="${accent}">Tiempo de espera (s)</text>
+      <line x1="430" y1="20" x2="452" y2="20" stroke="${accent2}" stroke-width="3" stroke-linecap="round" stroke-dasharray="2 4"/>
+      <text x="458" y="24" class="leg-t" fill="${accent2}">Autos que cruzan / h</text>
+    </g>`;
+  }
+  let dots="",labels="",rings="";
+  P.forEach((p,i)=>{const c=p.color||accent;
+    if(p.pulse){
+      rings+=`<circle cx="${p.x}" cy="${p.y}" r="9" fill="none" stroke="${c}" stroke-width="2">
+        <animate attributeName="r" values="9;30;9" dur="2.6s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values=".55;0;.55" dur="2.6s" repeatCount="indefinite"/></circle>`;
+    }
+    dots+=`<circle class="dot-outer" cx="${p.x}" cy="${p.y}" r="0" fill="${C_BG}" stroke="${c}" stroke-width="3" data-r="9" style="transition-delay:${.9+i*.12}s"/>`;
+    dots+=`<circle class="dot-core" cx="${p.x}" cy="${p.y}" r="0" fill="${c}" data-r="4" style="transition-delay:${.95+i*.12}s"/>`;
+    labels+=`<text class="pt-label" x="${p.x}" y="${p.y-22}" text-anchor="middle" fill="${c}" font-size="${opts.labelSize||20}" style="transition-delay:${1.1+i*.12}s">${p.label}</text>`;
+    if(p.sub)labels+=`<text class="pt-sub" x="${p.x}" y="${H-padB+24}" text-anchor="${edgeAnchor(i,P.length)}" style="transition-delay:${1.1+i*.12}s">${p.sub}</text>`;
+    if(p.delta)labels+=`<text class="delta-badge" x="${p.x}" y="${p.y+34}" text-anchor="middle" fill="${accent}" style="transition-delay:${1.3+i*.12}s">${p.delta}</text>`;
+  });
+  host.innerHTML=`
+  <svg viewBox="0 0 ${W} ${H}">
+    <defs>
+      <linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${accent}" stop-opacity="${opts.fillTop??.22}"/><stop offset="100%" stop-color="${accent}" stop-opacity="0"/></linearGradient>
+      <filter id="${hostId}glow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="4.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    </defs>
+    ${grid}
+    <path class="area-fill" d="${areaPath}" fill="url(#${gradId})" opacity="0" style="transition:opacity 1s ease .6s"/>
+    <path class="flow-line" d="${linePath}" stroke="${accent}" stroke-dasharray="1 18"/>
+    <path class="draw-line" d="${linePath}" stroke="${accent}" filter="url(#${hostId}glow)"/>
+    ${line2}
+    <line class="hover-guide" y1="${padT}" y2="${padT+innerH}"/>
+    ${rings}${dots}${dots2}${labels}${labels2}${legend}
+  </svg>
+  <div class="tooltip"></div>`;
+  host._P=P;host._H=H;
+  return host;
+}
+
+function animateChart(host){
+  const svg=host.querySelector('svg'),line=svg.querySelector('.draw-line');
+  const len=line.getTotalLength();
+  line.style.strokeDasharray=len;line.style.strokeDashoffset=len;line.getBoundingClientRect();
+  line.style.transition='stroke-dashoffset 1.5s cubic-bezier(.65,0,.35,1)';line.style.strokeDashoffset=0;
+  svg.querySelector('.area-fill').style.opacity=1;
+  svg.querySelectorAll('.dot-outer,.dot-core').forEach(d=>d.setAttribute('r',d.dataset.r));
+  svg.querySelectorAll('.pt-label,.pt-sub,.delta-badge,.pt-sub2,.chart-legend').forEach(l=>l.style.opacity=1);
+  const l2=svg.querySelector('.draw-line2');if(l2)l2.style.opacity=.85;
+  // movimiento perpetuo: cometa + flujo de "datos"
+  setTimeout(()=>liveChart(host),1100);
+}
+function liveChart(host){
+  const svg=host.querySelector('svg');
+  const line=svg.querySelector('.draw-line');
+  const hostId=host.id;
+  svg.querySelector('.flow-line').classList.add('on');
+  const comet=document.createElementNS(SVGNS,'circle');
+  comet.setAttribute('r','4.5');comet.setAttribute('fill','var(--acc-line)');
+  comet.setAttribute('filter',`url(#${hostId}glow)`);comet.setAttribute('class','comet');
+  svg.appendChild(comet);
+  const len=line.getTotalLength();let t=0;
+  (function move(){
+    t=(t+1.7)%len;const pt=line.getPointAtLength(t);
+    comet.setAttribute('cx',pt.x.toFixed(1));comet.setAttribute('cy',pt.y.toFixed(1));
+    requestAnimationFrame(move);
+  })();
+}
+function wireHover(host){
+  const svg=host.querySelector('svg'),tip=host.querySelector('.tooltip'),guide=svg.querySelector('.hover-guide'),P=host._P;
+  host._lastBest=-1;
+  svg.addEventListener('mousemove',e=>{
+    const r=svg.getBoundingClientRect();const sx=(e.clientX-r.left)/r.width*820;
+    let best=0,bd=1e9;P.forEach((p,i)=>{const d=Math.abs(p.x-sx);if(d<bd){bd=d;best=i}});
+    if(best===host._lastBest)return;host._lastBest=best;
+    const p=P[best];guide.setAttribute('x1',p.x);guide.setAttribute('x2',p.x);guide.style.opacity=.4;
+    let html=`<div class="tt-name">${p.name||p.label}</div><div class="tt-val">${p.ttval}</div>`;
+    if(p.thr!=null)html+=`<div class="tt-sub2">${p.thr.toLocaleString()} autos/h cruzan</div>`;
+    tip.innerHTML=html;
+    const px=p.x/820*r.width, py=p.y/host._H*r.height, pad=8;
+    const w=tip.offsetWidth, hh=tip.offsetHeight, half=w/2;
+    let shift=0;
+    if(px-half<pad) shift=pad-(px-half);
+    else if(px+half>r.width-pad) shift=(r.width-pad)-(px+half);
+    const below=(py-hh-14)<0;
+    tip.classList.toggle('tip-below',below);
+    tip.style.left=px+'px';tip.style.top=py+'px';
+    tip.style.transform=`translate(calc(-50% + ${shift.toFixed(1)}px), ${below?'12px':'calc(-100% - 12px)'})`;
+    tip.style.setProperty('--arrow-x',Math.max(8,Math.min(92,50-(shift/w*100))).toFixed(1)+'%');
+    tip.style.opacity=1;
+  });
+  svg.addEventListener('mouseleave',()=>{tip.style.opacity=0;guide.style.opacity=0;host._lastBest=-1});
+}
+
+const traj=[
+  {v:303.26,label:"303 s",sub:"Tradicional",name:"Sistema Tradicional",color:C_BASE,thr:1924,ttval:"303 s de espera"},
+  {v:192.61,label:"193 s",sub:"+ Semáforo IA",name:"Semáforo Inteligente",color:C_SEM,delta:"−36%",thr:1887,ttval:"193 s · −36%"},
+  {v:161.94,label:"162 s",sub:"+ Vehículos IA",name:"Vehículos Autónomos",color:C_VEH,delta:"−47%",thr:1911,ttval:"162 s · −47%"},
+  {v:66.18,label:"66 s",sub:"Sistema completo",name:"UrbanMind X",color:C_COMP,delta:"−78%",thr:1811,ttval:"66 s · −78%",pulse:true},
+];
+const trajThr=[
+  {v:1924,label2:"1,924"},
+  {v:1887,label2:"1,887"},
+  {v:1911,label2:"1,911"},
+  {v:1811,label2:"1,811"},
+];
+buildChart('trajChart',{points:traj,maxV:320,accent:C_COMP,h:380,ticks:4,fillTop:.22,points2:trajThr,maxV2:2400,accent2:C_VEH});
+
+const aporte=[
+  {v:mejora(192.61),label:"36.5%",sub:"Semáforo",name:"Semáforo solo",color:C_SEM,ttval:"36.5% de mejora"},
+  {v:mejora(161.94),label:"46.6%",sub:"Vehículos",name:"Vehículos solo",color:C_VEH,ttval:"46.6% de mejora"},
+  {v:mejora(66.18),label:"78.2%",sub:"Completo",name:"Sistema completo",color:C_COMP,ttval:"78.2% de mejora",pulse:true},
+];
+buildChart('aporteChart',{points:aporte,maxV:90,accent:C_COMP,h:340,ticks:3,labelSize:22,fillTop:.2});
+
+const rob=[
+  {name:"Tráfico normal",espera:66.18,thr:1811,curve:[40,55,48,62,58,72,66]},
+  {name:"Hora pico",espera:82.10,thr:2238,curve:[55,70,62,80,74,88,82]},
+  {name:"Desbalanceado",espera:78.42,thr:2242,curve:[50,64,58,76,70,84,78]},
+];
+const rc=document.getElementById('robustez');
+rob.forEach((r,idx)=>{
+  const card=document.createElement('div');card.className='card reveal';
+  const W=240,H=54,n=r.curve.length,mx=Math.max(...r.curve),mn=Math.min(...r.curve);
+  const pts=r.curve.map((v,i)=>({x:W*(i/(n-1)),y:H-((v-mn)/(mx-mn))*H*.8-H*.1}));
+  const path=smooth(pts);
+  card.innerHTML=`
+    <div class="rcard-head">${r.name}</div>
+    <div class="rcard-num tabnum">${mejora(r.espera).toFixed(0)}<small>%</small></div>
+    <div class="rcard-cap">menos espera · ${r.espera.toFixed(0)} s</div>
+    <svg class="spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+      <defs><linearGradient id="sp${idx}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--acc-line)" stop-opacity=".28"/><stop offset="100%" stop-color="var(--acc-line)" stop-opacity="0"/></linearGradient></defs>
+      <path d="${path} L ${W} ${H} L 0 ${H} Z" fill="url(#sp${idx})"/>
+      <path d="${path}" fill="none" stroke="var(--acc-line)" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="3 9">
+        <animate attributeName="stroke-dashoffset" values="0;-120" dur="3.6s" repeatCount="indefinite"/>
+      </path>
+      <circle cx="${pts[n-1].x}" cy="${pts[n-1].y}" r="3.5" fill="var(--acc-line)"/>
+    </svg>
+    <div class="rcard-foot">
+      <span class="k">Throughput</span><span class="v">${r.thr.toLocaleString()} autos/h</span>
+    </div>`;
+  rc.appendChild(card);
+});
+
+const tb=document.getElementById('tbody');
+data.forEach(d=>{
+  const m=mejora(d.espera);const tr=document.createElement('tr');if(d.hero)tr.className='row-hero';
+  const pill=d.key==='tradicional'?`<span class="mejora-pill neg">—</span>`:`<span class="mejora-pill">−${m.toFixed(1)}%</span>`;
+  tr.innerHTML=`<td><span class="tag-dot" style="background:${d.color};box-shadow:0 0 8px ${d.color}"></span>${d.name}</td><td>${d.espera.toFixed(1)}</td><td>${d.thr.toLocaleString()}</td><td>${d.vel.toFixed(2)}</td><td>${d.fre.toFixed(1)}</td><td>${pill}</td>`;
+  tb.appendChild(tr);
+});
+
+function countUp(el,target,suffix,dec,dur){let start=null;dur=dur||1400;
+  function step(ts){if(!start)start=ts;const p=Math.min((ts-start)/dur,1);const e=1-Math.pow(1-p,3);
+  el.textContent=(target*e).toFixed(dec)+suffix;if(p<1)requestAnimationFrame(step);else el.textContent=target.toFixed(dec)+suffix;}requestAnimationFrame(step);}
+
+let boost=0;
+function animateGauge(){const arc=document.getElementById('gaugeArc');const r=84,C=2*Math.PI*r;
+  arc.style.strokeDasharray=C;arc.style.strokeDashoffset=C;arc.getBoundingClientRect();
+  arc.style.transition='stroke-dashoffset 1.8s cubic-bezier(.16,1,.3,1)';arc.style.strokeDashoffset=C*(1-0.782);
+  countUp(document.getElementById('gaugeNum'),78.2,"",1,1800);
+  boost=1; /* enciende el tráfico 3D mientras sube el gauge */
+}
+
+/* ── REVEALS ── */
+const io=new IntersectionObserver((ents)=>{ents.forEach(en=>{if(en.isIntersecting){en.target.classList.add('in');io.unobserve(en.target)}})},{threshold:.12});
+document.querySelectorAll('.reveal').forEach(el=>{if(!el.closest('.hero'))io.observe(el);});
+function chartObserver(id){const host=document.getElementById(id);const o=new IntersectionObserver((e)=>{e.forEach(en=>{if(en.isIntersecting){animateChart(host);wireHover(host);o.unobserve(en.target)}})},{threshold:.3});o.observe(host);}
+
+/* ── TILT 3D en tarjetas ── */
+function addTilt(el,max){
+  el.addEventListener('mousemove',e=>{
+    const r=el.getBoundingClientRect();
+    const px=(e.clientX-r.left)/r.width-.5, py=(e.clientY-r.top)/r.height-.5;
+    el.style.transform=`rotateY(${px*max}deg) rotateX(${-py*max}deg) translateY(-4px) translateZ(8px)`;
+    el.style.boxShadow='0 26px 64px rgba(0,0,0,.5)';
+  });
+  el.addEventListener('mouseleave',()=>{el.style.transform='';el.style.boxShadow='';});
+}
+document.querySelectorAll('.metric').forEach(el=>addTilt(el,7));
+document.querySelectorAll('.card:not(.no-tilt)').forEach(el=>addTilt(el,4.5));
+
+/* ── TOGGLES: tema + acento (también actualizan la escena 3D) ── */
+const root=document.documentElement, themeBtn=document.getElementById('themeBtn');
+themeBtn.addEventListener('click',()=>{
+  const goLight = root.dataset.theme!=='light';
+  root.dataset.theme = goLight?'light':'dark';
+  themeBtn.innerHTML = goLight ? '&#9728; CLARO' : '&#9790; OSCURO';
+  if(window.__update3D) window.__update3D();
+});
+document.querySelectorAll('.sw').forEach(s=>s.addEventListener('click',()=>{
+  root.dataset.accent=s.dataset.acc;
+  document.querySelectorAll('.sw').forEach(x=>x.classList.toggle('active',x===s));
+  if(window.__update3D) window.__update3D();
+}));
+
+/* ── PARALLAX del hero + scroll global ── */
+let pageScroll=0;
+const heroInner=document.getElementById('heroInner');
+addEventListener('scroll',()=>{
+  pageScroll=window.scrollY;
+  if(heroInner) heroInner.style.transform=`translateY(${Math.min(pageScroll*0.16,140)}px)`;
+},{passive:true});
+
+/* ════════════════════════════════════════
+   ESCENA 3D · CIUDAD DE TOLUCA (TRÁFICO EN VIVO)
+   ════════════════════════════════════════ */
+function hexToRgb(h){h=(h||'').replace('#','');if(h.length===3)h=h.split('').map(c=>c+c).join('');const n=parseInt(h||'1fe39b',16);return[(n>>16)&255,(n>>8)&255,n&255];}
+
+(function city3D(){
+  if(!window.THREE) return;
+  const canvas=document.getElementById('bg3d');
+  let renderer,scene,camera,clock,grid,gridMat;
+  let bodyMesh,cabinMesh,headMesh,tailMesh,bodyMat,cabinMat,headMat,tailMat;
+  const GEXT=480, GSTEP=24, HALF=GEXT/2, ROAD_W=18;
+  const small=innerWidth<760;
+  const NCARS=small?54:104, NB=small?60:130;
+  let cars=[];
+  let introStart=null; const introDur=4.2;
+  let introDone=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const _m=new THREE.Matrix4(), _q=new THREE.Quaternion(), _v=new THREE.Vector3(), _ax=new THREE.Vector3(0,1,0);
+  const CARLEN=4.6, CARW=2.0, CARH=0.8;
+
+  function makeCar(){
+    const axis=Math.random()<0.5?'x':'z';
+    const lane=Math.round((Math.random()*2-1)*(HALF/GSTEP))*GSTEP;
+    const offset=(Math.random()<0.5?1:-1)*4.6;
+    const dir=Math.random()<0.5?1:-1;
+    return {axis,lane,offset,dir,pos:(Math.random()*GEXT-HALF),speed:15+Math.random()*15};
+  }
+
+  // textura de fachada con ventanas encendidas (cálidas / blancas)
+  function makeWindowTex(){
+    const c=document.createElement('canvas');c.width=64;c.height=128;const x=c.getContext('2d');
+    x.fillStyle='#080c12';x.fillRect(0,0,64,128);
+    const cols=4,rows=9,pad=5,cw=(64-pad*2)/cols,ch=(128-pad*2)/rows;
+    for(let r=0;r<rows;r++)for(let k=0;k<cols;k++){
+      let col='#0a0f17';const lit=Math.random();
+      if(lit>0.7){const p=Math.random(),a=(0.38+Math.random()*0.34).toFixed(2);
+        col=p<0.62?`rgba(255,196,122,${a})`:p<0.92?`rgba(206,224,250,${a})`:`rgba(150,255,210,${a})`;}
+      x.fillStyle=col;x.fillRect(pad+k*cw+1,pad+r*ch+1,cw-2,ch-2);
+    }
+    const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.needsUpdate=true;return t;
+  }
+
+  function init(){
+    renderer=new THREE.WebGLRenderer({canvas,alpha:true,antialias:true});
+    renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+    renderer.setSize(innerWidth,innerHeight);
+    scene=new THREE.Scene();
+    scene.fog=new THREE.FogExp2(new THREE.Color(cssVar('--bg')||'#04060A'),0.0072);
+    camera=new THREE.PerspectiveCamera(60,innerWidth/innerHeight,0.1,1400);
+    camera.position.set(25,180,80); // toma aérea inicial (intro cinematográfica)
+    clock=new THREE.Clock();
+    const a=new THREE.Color(accentHex());
+
+    // rejilla luminosa propia (recoloreable, brillo constante)
+    const gpts=[],n=GEXT/GSTEP;
+    for(let i=0;i<=n;i++){const p=-HALF+i*GSTEP;gpts.push(-HALF,0,p, HALF,0,p, p,0,-HALF, p,0,HALF);}
+    const gGeo=new THREE.BufferGeometry();
+    gGeo.setAttribute('position',new THREE.Float32BufferAttribute(gpts,3));
+    gridMat=new THREE.LineBasicMaterial({color:a.clone(),transparent:true,opacity:0.15});
+    grid=new THREE.LineSegments(gGeo,gridMat);scene.add(grid);
+
+    // ── EDIFICIOS con ventanas encendidas (4 cuadrantes alrededor del cruce) ──
+    const baseTex=[];for(let i=0;i<6;i++)baseTex.push(makeWindowTex());
+    const bGeo=new THREE.BoxGeometry(1,1,1);
+    for(let i=0;i<NB;i++){
+      let gx=Math.round((Math.random()*2-1)*(HALF/GSTEP))*GSTEP;
+      let gz=Math.round((Math.random()*2-1)*(HALF/GSTEP))*GSTEP;
+      if(Math.abs(gx)<ROAD_W+8) gx+=(gx>=0?1:-1)*(ROAD_W+14);
+      if(Math.abs(gz)<ROAD_W+8) gz+=(gz>=0?1:-1)*(ROAD_W+14);
+      const w=8+Math.random()*11,h=12+Math.random()*50,d=8+Math.random()*11;
+      const t=baseTex[(Math.random()*baseTex.length)|0].clone();
+      t.wrapS=t.wrapT=THREE.RepeatWrapping;
+      t.repeat.set(Math.max(1,Math.round(w/5)),Math.max(2,Math.round(h/8)));t.needsUpdate=true;
+      const mesh=new THREE.Mesh(bGeo,new THREE.MeshBasicMaterial({map:t,fog:true}));
+      mesh.scale.set(w,h,d);
+      mesh.position.set(gx+(Math.random()*6-3),h/2-0.2,gz+(Math.random()*6-3));
+      scene.add(mesh);
+    }
+
+    // ── COCHES con forma real: carrocería + cabina + faros + calaveras ──
+    const bodyGeo=new THREE.BoxGeometry(CARW,CARH,CARLEN);
+    const cabinGeo=new THREE.BoxGeometry(CARW*0.84,CARH*0.82,CARLEN*0.5);
+    const hGeoL=new THREE.BoxGeometry(CARW*0.86,0.24,0.22);
+    const tGeoL=new THREE.BoxGeometry(CARW*0.86,0.24,0.22);
+    bodyMat=new THREE.MeshBasicMaterial({color:new THREE.Color('#252c37'),fog:true});
+    cabinMat=new THREE.MeshBasicMaterial({color:new THREE.Color('#11161e'),fog:true});
+    headMat=new THREE.MeshBasicMaterial({color:a.clone(),transparent:true,opacity:.95,blending:THREE.AdditiveBlending,depthWrite:false,fog:true});
+    tailMat=new THREE.MeshBasicMaterial({color:new THREE.Color('#FF3A2E'),transparent:true,opacity:.9,blending:THREE.AdditiveBlending,depthWrite:false,fog:true});
+    bodyMesh=new THREE.InstancedMesh(bodyGeo,bodyMat,NCARS);
+    cabinMesh=new THREE.InstancedMesh(cabinGeo,cabinMat,NCARS);
+    headMesh=new THREE.InstancedMesh(hGeoL,headMat,NCARS);
+    tailMesh=new THREE.InstancedMesh(tGeoL,tailMat,NCARS);
+    for(let i=0;i<NCARS;i++)cars.push(makeCar());
+    scene.add(bodyMesh,cabinMesh,headMesh,tailMesh);
+
+    addEventListener('resize',onResize);
+    animate();
+  }
+
+  const ONE=new THREE.Vector3(1,1,1);
+  function updateCars(dt,sm){
+    for(let i=0;i<cars.length;i++){
+      const c=cars[i];c.pos+=c.dir*c.speed*sm*dt;
+      if(c.pos>HALF)c.pos=-HALF;else if(c.pos<-HALF)c.pos=HALF;
+      let x,z,ry,fx=0,fz=0;
+      if(c.axis==='x'){x=c.pos;z=c.lane+c.offset;ry=c.dir>0?Math.PI/2:-Math.PI/2;fx=c.dir;}
+      else{x=c.lane+c.offset;z=c.pos;ry=c.dir>0?0:Math.PI;fz=c.dir;}
+      _q.setFromAxisAngle(_ax,ry);
+      _v.set(x,0.45,z);_m.compose(_v,_q,ONE);bodyMesh.setMatrixAt(i,_m);                                  // carrocería
+      _v.set(x-fx*0.3,1.05,z-fz*0.3);_m.compose(_v,_q,ONE);cabinMesh.setMatrixAt(i,_m);                    // cabina
+      _v.set(x+fx*(CARLEN/2-0.2),0.5,z+fz*(CARLEN/2-0.2));_m.compose(_v,_q,ONE);headMesh.setMatrixAt(i,_m);// faros
+      _v.set(x-fx*(CARLEN/2-0.2),0.5,z-fz*(CARLEN/2-0.2));_m.compose(_v,_q,ONE);tailMesh.setMatrixAt(i,_m);// calaveras
+    }
+    bodyMesh.instanceMatrix.needsUpdate=true;cabinMesh.instanceMatrix.needsUpdate=true;
+    headMesh.instanceMatrix.needsUpdate=true;tailMesh.instanceMatrix.needsUpdate=true;
+  }
+
+  function animate(){
+    requestAnimationFrame(animate);
+    if(document.hidden) return;
+    const dt=Math.min(clock.getDelta(),0.05),t=clock.elapsedTime;
+    const sm=1+boost*1.5; boost*=0.985;   // boost SOLO acelera el tráfico (sin bajar brillo)
+    updateCars(dt,sm);
+
+    // ── INTRO CINEMATOGRÁFICA: grúa que baja desde una toma aérea de la ciudad ──
+    if(!introDone){
+      if(introStart===null) introStart=t;
+      let k=(t-introStart-3.4)/introDur;             // se mantiene aéreo 3.4s, luego desciende
+      if(k<0)k=0;
+      if(pageScroll>30) k=1;                         // hacer scroll salta la intro
+      if(k>=1){k=1;introDone=true;document.body.classList.add('intro-done');}
+      const e=k*k*k*(k*(k*6-15)+10);                  // smootherstep
+      const L=(a,b)=>a+(b-a)*e;
+      camera.position.set(L(25,0),L(180,25),L(80,98));
+      camera.lookAt(L(0,0),L(0,1.8),L(-20,-2));
+      renderer.render(scene,camera);
+      return;
+    }
+
+    // cámara: desciende y se adentra en la ciudad con el scroll
+    const maxScroll=Math.max(document.body.scrollHeight-innerHeight,1);
+    const s=Math.min(pageScroll/maxScroll,1);
+    const tgtZ=98 - s*76;                          // 98 → 22
+    const tgtY=25 - s*15 + Math.sin(t*0.28)*1.0;   // 25 → 10
+    const tgtX=Math.sin(t*0.1)*5;
+    camera.position.x += (tgtX-camera.position.x)*0.04;
+    camera.position.y += (tgtY-camera.position.y)*0.04;
+    camera.position.z += (tgtZ-camera.position.z)*0.06;
+    camera.lookAt(0,1.8,-2);
+    renderer.render(scene,camera);
+  }
+
+  function onResize(){if(!renderer)return;camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);}
+
+  window.__update3D=function(){
+    if(!renderer) return;
+    const a=new THREE.Color(accentHex());
+    if(gridMat)gridMat.color.set(a);
+    if(headMat)headMat.color.set(a);
+    if(scene&&scene.fog)scene.fog.color.set(cssVar('--bg')||'#04060A');
+  };
+
+  try{ init(); }catch(err){ console.warn('3D off:',err); }
+})();
+
+/* ── ARRANQUE ── */
+/* ── Curvas de aprendizaje ── */
+const SEM_RAW=[[1000,-0.0986,-0.2718,-0.0136],[8000,-0.08,-0.1928,-0.0083],[15000,-0.0497,-0.1794,-0.0071],[22000,-0.0232,-0.0836,0.0],[29000,-0.0233,-0.0798,0.0],[36000,-0.0195,-0.0891,0.0],[43000,-0.0216,-0.0799,0.0],[50000,-0.0185,-0.0866,0.0],[57000,-0.0202,-0.0721,0.0],[64000,-0.0205,-0.0723,0.0],[71000,-0.0172,-0.0788,0.0],[78000,-0.02,-0.0733,0.0],[85000,-0.0194,-0.0737,0.0],[92000,-0.0187,-0.0713,0.0],[99000,-0.0195,-0.0684,0.0],[106000,-0.0165,-0.073,0.0],[113000,-0.0187,-0.0654,0.0],[120000,-0.0193,-0.0631,0.0],[127000,-0.0173,-0.0684,0.0],[134000,-0.019,-0.0649,0.0],[141000,-0.0167,-0.0697,0.0],[148000,-0.0187,-0.0647,0.0],[155000,-0.0189,-0.0638,0.0],[162000,-0.0162,-0.0725,0.0],[169000,-0.0189,-0.068,0.0],[176000,-0.0181,-0.0705,0.0],[183000,-0.0177,-0.066,0.0],[190000,-0.0187,-0.0641,0.0],[197000,-0.0164,-0.0678,0.0],[204000,-0.0182,-0.0641,0.0],[211000,-0.0185,-0.0633,0.0],[218000,-0.0182,-0.073,0.0],[225000,-0.02,-0.0716,0.0],[232000,-0.0168,-0.0793,0.0],[239000,-0.0198,-0.0723,0.0],[246000,-0.0202,-0.0703,0.0],[253000,-0.0163,-0.0734,0.0],[260000,-0.0187,-0.0673,0.0],[267000,-0.0174,-0.0693,0.0],[274000,-0.0183,-0.069,0.0],[281000,-0.019,-0.0671,0.0],[288000,-0.0165,-0.0716,0.0],[295000,-0.019,-0.0653,0.0],[302000,-0.0185,-0.0651,0.0],[309000,-0.0167,-0.0672,0.0],[316000,-0.0179,-0.0638,0.0],[323000,-0.0157,-0.0723,0.0],[330000,-0.0195,-0.0713,0.0],[337000,-0.0201,-0.0704,0.0],[344000,-0.0167,-0.0789,0.0],[351000,-0.0192,-0.0726,0.0],[358000,-0.0171,-0.0782,0.0],[365000,-0.0182,-0.0688,0.0],[372000,-0.0185,-0.0684,0.0],[379000,-0.0156,-0.0731,0.0],[386000,-0.0182,-0.068,0.0],[393000,-0.0181,-0.0684,0.0],[400000,-0.0179,-0.0716,0.0],[407000,-0.019,-0.0695,0.0],[414000,-0.016,-0.0757,0.0],[421000,-0.0185,-0.0682,0.0],[428000,-0.0192,-0.0668,0.0],[435000,-0.0166,-0.0708,0.0],[442000,-0.0188,-0.0662,0.0],[449000,-0.0165,-0.0733,0.0],[456000,-0.0194,-0.0716,0.0],[463000,-0.0196,-0.0721,0.0],[470000,-0.0165,-0.0822,0.0],[477000,-0.0195,-0.0743,0.0],[484000,-0.0185,-0.0762,0.0],[491000,-0.0185,-0.0705,0.0],[498000,-0.0209,-0.075,0.0],[501000,-0.024,-0.0808,0.0]];
+const VEH_RAW=[[1000,-1.925,-16.64,6.95],[8000,-1.78,-16.37,6.95],[15000,-1.46,-16.24,6.95],[22000,-1.182,-16.04,6.95],[29000,-1.213,-16.07,6.95],[36000,-1.313,-15.94,6.95],[43000,-1.068,-15.97,6.95],[50000,-1.194,-15.97,6.95],[57000,-1.311,-16.0,6.95],[64000,-1.064,-16.01,6.95],[71000,-1.234,-16.01,6.95],[78000,-1.392,-16.09,6.95],[85000,-1.13,-16.03,6.95],[92000,-1.344,-16.09,6.95],[99000,-1.489,-15.97,6.95],[106000,-1.157,-15.96,6.95],[113000,-1.35,-15.86,6.95],[120000,-1.497,-15.97,6.95],[127000,-1.167,-15.91,6.95],[134000,-1.335,-15.99,6.95],[141000,-1.461,-15.96,6.95],[148000,-1.138,-16.09,6.95],[155000,-1.313,-16.16,6.95],[162000,-1.459,-16.11,6.95],[169000,-1.31,-16.04,6.95],[176000,-1.59,-15.99,6.95],[183000,-1.701,-16.04,6.92],[190000,-1.274,-15.97,6.89],[197000,-1.075,-15.87,6.86],[204000,-0.949,-15.67,6.84],[211000,-0.8,-15.4,6.76],[218000,-0.747,-15.46,6.71],[225000,-0.722,-15.44,6.71],[232000,-0.684,-15.54,6.81],[239000,-0.9,-15.59,6.89],[246000,-1.066,-15.67,6.95],[253000,-0.831,-15.77,6.95],[260000,-0.636,-15.81,6.95],[267000,-0.743,-15.76,6.95],[274000,-0.691,-15.79,6.94],[281000,-0.622,-15.6,6.94],[288000,-0.781,-15.59,6.94],[295000,-0.694,-15.54,6.94],[302000,-0.559,-15.59,6.94],[309000,-0.879,-15.56,6.94],[316000,-0.768,-15.5,6.95],[323000,-0.421,-15.5,6.95],[330000,-0.715,-15.63,6.95],[337000,-0.697,-15.66,6.95],[344000,-0.483,-15.59,6.95],[351000,-0.744,-15.59,6.94],[358000,-0.684,-15.54,6.94],[365000,-0.486,-15.5,6.93],[372000,-0.72,-15.43,6.94],[379000,-0.66,-15.54,6.94],[386000,-0.401,-15.59,6.94],[393000,-0.574,-15.57,6.94],[400000,-0.613,-15.43,6.89],[407000,-0.405,-15.2,6.88],[414000,-0.66,-15.24,6.88],[421000,-0.761,-15.33,6.9],[428000,-0.504,-15.44,6.9],[435000,-0.462,-15.47,6.89],[442000,-0.597,-15.47,6.93],[449000,-0.453,-15.49,6.93],[456000,-0.648,-15.41,6.95],[463000,-0.582,-15.24,6.95],[470000,-0.381,-15.16,6.94],[477000,-0.622,-15.31,6.94],[484000,-0.795,-15.51,6.94],[491000,-0.466,-15.64,6.89],[498000,-0.289,-15.47,6.87],[501000,-0.179,-15.52,6.85]];
+
+function buildCurve(hostId,opts){
+  const host=document.getElementById(hostId);
+  const W=820,H=opts.h||300,padL=opts.padL??56,padR=24,padT=24,padB=40;
+  const innerW=W-padL-padR,innerH=H-padT-padB;
+  const pts=opts.points;
+  const ts=pts.map(p=>p.t),tmin=Math.min(...ts),tmax=Math.max(...ts);
+  let vmin=opts.yMin,vmax=opts.yMax;
+  if(vmin===undefined){
+    const all=[];pts.forEach(p=>{all.push(p.p);if(p.lo!==undefined)all.push(p.lo);if(p.hi!==undefined)all.push(p.hi)});
+    vmin=Math.min(...all);vmax=Math.max(...all);
+    const pad=(vmax-vmin)*0.12||1;vmin-=pad;vmax+=pad;
+  }
+  const x=t=>padL+innerW*((t-tmin)/(tmax-tmin||1));
+  const y=v=>padT+innerH*(1-(v-vmin)/(vmax-vmin||1));
+  const accent=opts.accent,hasBand=pts[0].hi!==undefined;
+  let grid="";const ticks=opts.ticks||4;
+  for(let i=0;i<=ticks;i++){const gy=padT+innerH*(i/ticks);const val=vmax-(vmax-vmin)*(i/ticks);
+    grid+=`<line class="gridline" x1="${padL}" y1="${gy}" x2="${W-padR}" y2="${gy}"/>`;
+    grid+=`<text class="lc-axis" x="${padL-8}" y="${gy+3}" text-anchor="end">${opts.fmtY?opts.fmtY(val):val.toFixed(2)}</text>`;}
+  let xlab="";const xticks=opts.xticks||5;
+  for(let i=0;i<=xticks;i++){const t=tmin+(tmax-tmin)*(i/xticks);const gx=x(t);
+    xlab+=`<text class="lc-axis" x="${gx}" y="${H-padB+20}" text-anchor="middle">${Math.round(t/1000)}k</text>`;}
+  const linePts=pts.map(p=>({x:x(p.t),y:y(p.p)}));
+  const linePath=smooth(linePts);
+  let bandPath="";
+  if(hasBand){
+    const hi=pts.map(p=>({x:x(p.t),y:y(p.hi)}));
+    const lo=pts.map(p=>({x:x(p.t),y:y(p.lo)})).reverse();
+    bandPath=smooth(hi)+" L "+lo.map(p=>`${p.x} ${p.y}`).join(" L ")+" Z";
+  }
+  let markers="";
+  if(opts.markers){linePts.forEach((p,i)=>{
+    markers+=`<circle class="lc-marker dot-outer" cx="${p.x}" cy="${p.y}" r="0" fill="var(--surface)" stroke="${accent}" stroke-width="2.5" data-r="6" style="transition-delay:${.9+i*.1}s"/>`;
+    markers+=`<circle class="lc-marker dot-core" cx="${p.x}" cy="${p.y}" r="0" fill="${accent}" data-r="3" style="transition-delay:${.95+i*.1}s"/>`;});}
+  const gradId=hostId+"G";
+  host.innerHTML=`
+  <svg viewBox="0 0 ${W} ${H}">
+    <defs>
+      <linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${accent}" stop-opacity=".18"/><stop offset="100%" stop-color="${accent}" stop-opacity="0"/></linearGradient>
+      <filter id="${hostId}gl" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    </defs>
+    ${grid}${xlab}
+    ${hasBand?`<path class="lc-band area-fill" d="${bandPath}" fill="url(#${gradId})" opacity="0" style="transition:opacity 1s ease .5s"/>`:`<path class="area-fill" d="${linePath} L ${linePts[linePts.length-1].x} ${padT+innerH} L ${linePts[0].x} ${padT+innerH} Z" fill="url(#${gradId})" opacity="0" style="transition:opacity 1s ease .5s"/>`}
+    <path class="draw-line lc-line" d="${linePath}" stroke="${accent}" filter="url(#${hostId}gl)"/>
+    <line class="hover-guide" y1="${padT}" y2="${padT+innerH}"/>
+    ${markers}
+  </svg>
+  <div class="tooltip"></div>`;
+  host._P=pts.map(p=>({x:x(p.t),y:y(p.p),name:`${Math.round(p.t/1000)}k pasos`,ttval:opts.fmtTip?opts.fmtTip(p.p):p.p.toFixed(3)}));
+  host._H=H;
+}
+buildCurve('semCurve',{points:SEM_RAW.filter(r=>r[0]<=60000).map(r=>({t:r[0],p:r[1]})),accent:C_COMP,h:300,ticks:4,xticks:5,fmtY:v=>v.toFixed(2),fmtTip:v=>v.toFixed(3)+" recompensa"});
+buildCurve('vehCurve',{points:VEH_RAW.filter(r=>r[0]<=60000).map(r=>({t:r[0],p:r[1]})),accent:C_VEH,h:300,ticks:4,xticks:5,fmtY:v=>v.toFixed(2),fmtTip:v=>v.toFixed(3)+" recompensa"});
+
+/* ── Proceso experimental del semáforo ── */
+const mexp=[
+  {name:"Modelo base",cfg:"6 obs · pen −10",mejora:35.6,color:C_SEM,
+   verdict:"Configuración balanceada. Buen resultado pero <b>se estancó</b> a los 100k pasos."},
+  {name:"v2 · castigo fuerte",cfg:"6 obs · pen −25",mejora:-1.6,color:"var(--danger)",kill:true,
+   verdict:"El castigo excesivo volvió al semáforo tan conservador que quedó <b>peor que el fijo</b>."},
+  {name:"v3 · más observación",cfg:"9 obs · pen −10",mejora:24.0,color:C_BASE,kill:true,
+   verdict:"Información redundante causó <b>sobreajuste</b>: buenas métricas, peor desempeño real."},
+  {name:"v4 · premia fluidez",cfg:"6 obs · recompensa fluidez",mejora:36.5,color:"var(--acc-line)",win:true,
+   verdict:"Premiar autos en movimiento dio un <b>objetivo positivo</b>. El mejor de todos. Elegido."},
+];
+function renderMexp(){
+  const host=document.getElementById('mexpList');
+  const MAXM=40; // escala: 40% = barra llena
+  mexp.forEach((m)=>{
+    const pct=Math.max(m.mejora,0)/MAXM*100;
+    const row=document.createElement('div');
+    row.className='mexp-row';
+    if(m.win)row.dataset.win="1";
+    const tag=m.win?`<span class="mexp-tag win">Elegido</span>`:(m.kill?`<span class="mexp-tag kill">Descartado</span>`:``);
+    const negative=m.mejora<0;
+    const valInner=negative?'':`${m.mejora.toFixed(1)}%`;
+    const outStatus=negative?`<span class="mexp-status" style="left:14px;color:var(--danger)">peor que el fijo</span>`:'';
+    row.innerHTML=`
+      <div class="mexp-meta">
+        ${tag}
+        <div class="mexp-name">${m.name}</div>
+        <div class="mexp-cfg">${m.cfg}</div>
+      </div>
+      <div>
+        <div class="mexp-track">
+          <div class="mexp-fill" data-w="${pct.toFixed(1)}" style="--bar:${m.color}">
+            <span class="mexp-val">${valInner}</span>
+          </div>
+          ${outStatus}
+        </div>
+        <div class="mexp-verdict">${m.verdict}</div>
+      </div>`;
+    host.appendChild(row);
+  });
+}
+renderMexp();
+function animateMexp(){
+  document.querySelectorAll('#mexpList .mexp-fill').forEach(f=>{
+    f.style.width=f.dataset.w+'%';
+    const v=f.querySelector('.mexp-val');if(v)v.style.opacity=1;
+  });
+  document.querySelectorAll('#mexpList .mexp-status').forEach(s=>s.style.opacity=1);
+}
+function mexpObserver(){
+  const host=document.getElementById('mexpList');
+  const o=new IntersectionObserver((e)=>{e.forEach(en=>{if(en.isIntersecting){animateMexp();o.unobserve(en.target)}})},{threshold:.3});
+  o.observe(host);
+}
+
+/* ── Activación de video cuando se asigna src ── */
+function activateVideoCard(videoId, cardId){
+  const vid = document.getElementById(videoId);
+  const card = document.getElementById(cardId);
+  if(!vid || !card) return;
+  // Si ya tiene src al cargar la página
+  if(vid.src && vid.src !== window.location.href){
+    vid.classList.add('loaded');
+    card.classList.add('has-video');
+  }
+  // También escuchar si se carga dinámicamente
+  vid.addEventListener('loadedmetadata', ()=>{
+    vid.classList.add('loaded');
+    card.classList.add('has-video');
+  });
+}
+activateVideoCard('videoTradicional','videoCardTradicional');
+activateVideoCard('videoUrbanmind','videoCardUrbanmind');
+
+
+let __actx=null;
+function __getCtx(){
+  if(!__actx){ try{__actx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){return null;} }
+  if(__actx.state==='suspended') __actx.resume();
+  return __actx;
+}
+['pointerdown','pointermove','keydown','touchstart','scroll','click'].forEach(ev=>
+  window.addEventListener(ev,()=>__getCtx(),{once:true,passive:true}));
+function whoosh(){
+  const c=__getCtx(); if(!c||c.state!=='running') return;
+  const t=c.currentTime, dur=0.9;
+  const buf=c.createBuffer(1,Math.floor(c.sampleRate*dur),c.sampleRate);
+  const d=buf.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1;
+  const src=c.createBufferSource(); src.buffer=buf;
+  const bp=c.createBiquadFilter(); bp.type='bandpass'; bp.Q.value=0.7;
+  bp.frequency.setValueAtTime(280,t); bp.frequency.exponentialRampToValueAtTime(3200,t+0.5); bp.frequency.exponentialRampToValueAtTime(500,t+dur);
+  const g=c.createGain(); g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.11,t+0.22); g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  src.connect(bp).connect(g).connect(c.destination); src.start(t); src.stop(t+dur);
+}
+function beep(){
+  const c=__getCtx(); if(!c||c.state!=='running') return;
+  const t=c.currentTime;
+  const o=c.createOscillator(); o.type='triangle'; o.frequency.setValueAtTime(760,t); o.frequency.exponentialRampToValueAtTime(1280,t+0.07);
+  const g=c.createGain(); g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.07,t+0.015); g.gain.exponentialRampToValueAtTime(0.0001,t+0.22);
+  o.connect(g).connect(c.destination); o.start(t); o.stop(t+0.26);
+}
+/* ── Glitch / scramble del título (las letras se descifran) ── */
+function scrambleTitle(){
+  const el=document.getElementById('tcTitleText'); if(!el) return;
+  const finalText='UrbanMind·X', accent=[9,10], fixed=[9];
+  const glyphs='ABCDEFGHJKLMNPQRSTUVWXYZ#%&$/<>*0123456789';
+  el.innerHTML=''; const spans=[];
+  for(let i=0;i<finalText.length;i++){ const s=document.createElement('span'); if(accent.indexOf(i)>=0) s.className='tc-x'; el.appendChild(s); spans.push(s); }
+  el.style.opacity='1'; el.classList.add('scrambling');
+  const t0=performance.now(), dur=1500;
+  const lock=finalText.split('').map((_,i)=>350+(i/finalText.length)*1000);
+  const rnd=()=>glyphs[(Math.random()*glyphs.length)|0];
+  whoosh();
+  (function frame(now){
+    const t=now-t0; let done=true;
+    spans.forEach((s,i)=>{
+      if(fixed.indexOf(i)>=0){ s.textContent=finalText[i]; return; }
+      if(t>=lock[i]) s.textContent=finalText[i];
+      else { s.textContent=rnd(); done=false; }
+    });
+    if(!done && t<dur) requestAnimationFrame(frame);
+    else { spans.forEach((s,i)=>s.textContent=finalText[i]); el.classList.remove('scrambling'); beep(); }
+  })(performance.now());
+}
+
+window.addEventListener('load',()=>{
+  /* Refuerzo: asegura que la intro siempre arranque desde el tope,
+     aunque el navegador haya intentado restaurar el scroll. */
+  window.scrollTo(0,0);
+
+  chartObserver('trajChart');chartObserver('aporteChart');
+  chartObserver('semCurve');chartObserver('vehCurve');
+  mexpObserver();
+
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const tc=document.getElementById('titleCard');
+  let revealed=false;
+  function revealHero(){
+    if(revealed)return;revealed=true;
+    document.querySelectorAll('.hero .reveal').forEach((el,i)=>setTimeout(()=>el.classList.add('in'),60*i));
+    animateGauge();
+    document.querySelectorAll('[data-count]').forEach(el=>countUp(el,parseFloat(el.dataset.count),el.dataset.suffix||"",(parseFloat(el.dataset.count)%1!==0)?1:0));
+  }
+  function hideTitle(){ if(tc)tc.classList.add('gone'); }
+
+  if(reduce){ revealHero(); document.body.classList.add('intro-done'); return; }
+
+  // ── Secuencia cinematográfica: placa de título sobre la toma aérea → aterrizaje ──
+  const timers=[
+    setTimeout(scrambleTitle,650),                                 // el título se descifra (glitch + whoosh)
+    setTimeout(hideTitle,5500),                                    // la placa se desvanece
+    setTimeout(revealHero,6100),                                   // emerge el contenido del hero
+    setTimeout(()=>document.body.classList.add('intro-done'),8300) // red de seguridad (retrae letterbox)
+  ];
+  // Hacer scroll salta toda la intro
+  window.addEventListener('scroll',()=>{
+    if(revealed||window.scrollY<=30)return;
+    timers.forEach(clearTimeout);hideTitle();revealHero();document.body.classList.add('intro-done');
+  },{passive:true});
+});
+</script>
+</body>
+</html>
